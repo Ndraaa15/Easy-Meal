@@ -36,13 +36,15 @@ func (h *handler) registerRoutes() {
 
 	v1 := h.http.Group("/api/v1")
 
+	//User
 	v1.POST("/user/signup", h.UserRegister)
 	v1.GET("/user/login", h.UserLogin)
 	v1.PUT("/user/update/:id", h.UserUpdate)
 
-	v1.POST("/seller/signup", h.SellerRegister)
-	v1.GET("/seller/login", h.SellerLogin)
-	v1.PUT("/seller/update/:id", h.SellerUpdate)
+	//Admin
+	v1.POST("/admin/signup", h.AdminRegister)
+	v1.GET("/admin/login", h.AdminLogin)
+	v1.PUT("/admin/update/:id", h.AdminUpdate)
 
 }
 

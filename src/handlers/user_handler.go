@@ -19,7 +19,7 @@ func (h *handler) UserRegister(c *gin.Context) {
 		return
 	}
 
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), 20)
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), 12)
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create password", nil)
@@ -36,9 +36,7 @@ func (h *handler) UserRegister(c *gin.Context) {
 		Gender:   newUser.Gender,
 	}
 
-	err = h.Repository.CreateUser(&user)
-
-	if err != nil {
+	if err = h.Repository.CreateUser(&user); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed save new user", nil)
 		return
 	}
@@ -107,7 +105,7 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	}
 
 	if updateUser.Password != "" {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 20)
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 12)
 		if err != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create password", nil)
 			return
@@ -124,7 +122,7 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	} else if updateUser.Contact != "" {
 		userFound.Contact = updateUser.Contact
 	} else if updateUser.Gender != userFound.Gender {
-		userFound.FName = updateUser.FName
+		userFound.Gender = updateUser.Gender
 	}
 
 	if err := h.Repository.UpdateUser(userFound); err != nil {

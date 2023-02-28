@@ -8,7 +8,7 @@ type User struct {
 	FName    string `json:"fname" binding:"required"`
 	Email    string `json:"email" binding:"required"`
 	Username string `json:"username" binding:"required"`
-	Gender   bool   `json:"gender" binding:"required"`
+	Gender   string `json:"gender" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Address  string `json:"address" binding:"required"`
 	Contact  string `json:"contact" binding:"required"`
