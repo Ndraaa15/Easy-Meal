@@ -36,14 +36,14 @@ func (h *handler) UserRegister(c *gin.Context) {
 		Gender:   newUser.Gender,
 	}
 
-	result, err := h.Repository.CreateUser(user)
+	err = h.Repository.CreateUser(&user)
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed save new user", nil)
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Register Successful", result)
+	helper.SuccessResponse(c, http.StatusOK, "Register Successful", user)
 
 }
 

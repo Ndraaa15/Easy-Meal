@@ -5,12 +5,11 @@ import (
 	"bcc-project-v/src/model"
 )
 
-func (r *Repository) CreateUser(user entities.User) (*entities.User, error) {
-	err := r.db.Debug().Create(&user).Error
-	if err != nil {
-		return nil, err
+func (r *Repository) CreateUser(user *entities.User) error {
+	if err := r.db.Debug().Create(user).Error; err != nil {
+		return err
 	}
-	return &user, err
+	return nil
 }
 
 func (r *Repository) FindUser(model *model.LoginUser) (*entities.User, error) {

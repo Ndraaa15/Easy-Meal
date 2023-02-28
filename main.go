@@ -7,8 +7,6 @@ import (
 	"bcc-project-v/src/handlers"
 	"bcc-project-v/src/repository"
 	"fmt"
-
-	"github.com/jinzhu/gorm"
 )
 
 func main() {
@@ -34,7 +32,7 @@ func main() {
 
 	db.Debug().AutoMigrate(&entities.User{}, &entities.Seller{})
 
-	handler := handlers.Init(conf, &gorm.DB{}, &repository.Repository{})
+	handler := handlers.Init(conf, repository.NewRepository(db))
 	handler.Run()
 
 }

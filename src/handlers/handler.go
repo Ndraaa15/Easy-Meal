@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type handler struct {
@@ -18,11 +18,10 @@ type handler struct {
 	Repository repository.Repository
 }
 
-func Init(config config.Initializer, db *gorm.DB, repo *repository.Repository) *handler {
+func Init(config config.Initializer, repo *repository.Repository) *handler {
 	rest := handler{
 		http:       gin.Default(),
 		config:     config,
-		db:         db,
 		Repository: *repo,
 	}
 	rest.registerRoutes()
@@ -30,7 +29,7 @@ func Init(config config.Initializer, db *gorm.DB, repo *repository.Repository) *
 }
 
 func (h *handler) registerRoutes() {
-
+	repository.NewRepository(h.db)
 	h.http.GET("/", func(ctx *gin.Context) {
 		helper.SuccessResponse(ctx, http.StatusOK, "Hello World", nil)
 	})
