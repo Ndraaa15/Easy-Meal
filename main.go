@@ -30,7 +30,7 @@ func main() {
 
 	fmt.Println("Database connected successfully!")
 
-	db.Debug().AutoMigrate(&entities.User{}, &entities.Admin{})
+	db.Debug().AutoMigrate(&entities.User{}, &entities.Admin{}, &entities.Product{})
 
 	handler := handlers.Init(conf, repository.NewRepository(db))
 	handler.Run()

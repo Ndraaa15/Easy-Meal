@@ -3,6 +3,7 @@ package handlers
 import (
 	"bcc-project-v/sdk/config"
 	"bcc-project-v/src/helper"
+	"bcc-project-v/src/middleware"
 	"bcc-project-v/src/repository"
 	"fmt"
 	"net/http"
@@ -37,14 +38,24 @@ func (h *handler) registerRoutes() {
 	v1 := h.http.Group("/api/v1")
 
 	//User
-	v1.POST("/user/signup", h.UserRegister)
-	v1.GET("/user/login", h.UserLogin)
-	v1.PUT("/user/update/:id", h.UserUpdate)
+	user := h.http.Group(v1.BasePath() + "/user")
+	user.POST("/signup", h.UserRegister)
+	user.GET("/login", h.UserLogin)
+	user.PUT("/update/:id", h.UserUpdate)
 
 	//Admin
-	v1.POST("/admin/signup", h.AdminRegister)
-	v1.GET("/admin/login", h.AdminLogin)
-	v1.PUT("/admin/update/:id", h.AdminUpdate)
+	admin := h.http.Group(v1.BasePath() + "/admin")
+	admin.POST("/signup", h.AdminRegister)
+	admin.GET("/login", h.AdminLogin)
+	admin.PUT("/update/:id", h.AdminUpdate)
+
+	//Product
+	product := h.http.Group(v1.BasePath() + "/admin/market")
+	product.Use(middleware.IsAdminLoggedIn()).
+		POST("/product", h.PostProduct).
+		PUT("/product/:product_id").
+		GET("/product").
+		GET("/product/:product_id")
 
 }
 

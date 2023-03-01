@@ -32,7 +32,7 @@ func (h *handler) AdminRegister(c *gin.Context) {
 	}
 
 	if err := h.Repository.CreateAdmin(&admin); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't create new seller", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't create new admin", nil)
 	}
 
 	helper.SuccessResponse(c, http.StatusOK, "Register Successful", admin)
@@ -61,7 +61,7 @@ func (h *handler) AdminLogin(c *gin.Context) {
 	})
 
 	//GET JWT TOKEN
-	tokenString, err := token.SignedString([]byte(adminFound.Password))
+	tokenString, err := token.SignedString((h.config.GetEnv("SECRET_KEY")))
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create token", nil)
@@ -89,7 +89,7 @@ func (h *handler) AdminUpdate(c *gin.Context) {
 
 	adminFound, err := h.Repository.FindAdminByID(idReq.ID)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't find the seller", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't find the admin", nil)
 	}
 
 	if updateAdmin.Password != "" {
@@ -106,7 +106,7 @@ func (h *handler) AdminUpdate(c *gin.Context) {
 	}
 
 	if err := h.Repository.UpdateAdmin(adminFound); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed updated seller", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed updated admin", nil)
 		return
 	}
 
