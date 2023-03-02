@@ -17,7 +17,8 @@ func (h *handler) PostProduct(c *gin.Context) {
 
 	newProduct := model.NewProduct{}
 	if err := c.ShouldBindJSON(&newProduct); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Failed create new product post!", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
+		return
 	}
 
 	product := entities.Product{
@@ -30,6 +31,7 @@ func (h *handler) PostProduct(c *gin.Context) {
 
 	if err := h.Repository.CreateProduct(&product); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't make the product", nil)
+		return
 	}
 
 	helper.SuccessResponse(c, http.StatusOK, "Create product Successful", product)
@@ -63,29 +65,36 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 
 	if err := c.ShouldBindUri(&idProduct); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
+		return
 	}
 
 	if err := c.ShouldBindJSON(&UpdateProduct); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
+		return
 	}
 
 	productFound, err := h.Repository.GetProductByID(idProduct.ID)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Product not found", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Product not found. Please try again later!", nil)
+		return
 	}
 
 	if productFound.Name != "" {
 		productFound.Name = UpdateProduct.Name
-	} else if productFound.Price != 0 {
+	}
+	if productFound.Price != 0 {
 		productFound.Price = UpdateProduct.Price
-	} else if productFound.Stock != 0 {
+	}
+	if productFound.Stock != 0 {
 		productFound.Stock = UpdateProduct.Stock
-	} else if productFound.Description != "" {
+	}
+	if productFound.Description != "" {
 		productFound.Description = UpdateProduct.Description
 	}
 
 	if err := h.Repository.SaveProduct(productFound); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed update product", nil)
+		return
 	}
 
 	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &productFound)
@@ -94,22 +103,36 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 func (h *handler) GetAllProduct(c *gin.Context) {
 	products, err := h.Repository.GetAllProduct()
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Can't find the product", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "Product not found. Please try again later!", nil)
+		return
 	}
-	helper.SuccessResponse(c, http.StatusBadRequest, "Product found", products)
+	helper.SuccessResponse(c, http.StatusOK, "Product found", products)
 }
 
 func (h *handler) GetProductByID(c *gin.Context) {
 	idProduct := model.GetProductByID{}
 	if err := c.ShouldBindUri(&idProduct); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Can't find id product", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "Can't find the id product", nil)
 		return
 	}
 	product, err := h.Repository.GetProductByID(idProduct.ID)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Cant find the product", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Product not found. Please try again later!", nil)
 		return
 	}
 	helper.SuccessResponse(c, http.StatusOK, "Find product successful", product)
+}
 
+func (h *handler) DeleteProductByID(c *gin.Context) {
+	idProduct := model.GetProductByID{}
+	if err := c.ShouldBindUri(&idProduct); err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Can't find the ID product", nil)
+		return
+	}
+	product, err := h.Repository.DeleteProductByID(idProduct.ID)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete the product. Please try again!", nil)
+		return
+	}
+	helper.SuccessResponse(c, http.StatusOK, "Product with name "+product.Name+" succesful deleted", nil)
 }

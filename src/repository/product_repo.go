@@ -16,7 +16,7 @@ func (r *Repository) GetProductByID(idProduct uint) (*entities.Product, error) {
 }
 
 func (r *Repository) SaveProduct(product *entities.Product) error {
-	err := r.db.Save(product).Error
+	err := r.db.Save(&product).Error
 	return err
 }
 
@@ -24,4 +24,10 @@ func (r *Repository) GetAllProduct() ([]entities.Product, error) {
 	products := []entities.Product{}
 	err := r.db.Find(&products).Error
 	return products, err
+}
+
+func (r *Repository) DeleteProductByID(ID uint) (*entities.Product, error) {
+	product := entities.Product{}
+	err := r.db.Delete(&product, ID).Error
+	return &product, err
 }

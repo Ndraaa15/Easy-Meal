@@ -15,13 +15,14 @@ import (
 func (h *handler) AdminRegister(c *gin.Context) {
 	newAdmin := model.AdminRegister{}
 	if err := c.ShouldBindJSON(&newAdmin); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
+		return
 	}
 
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(newAdmin.Password), 12)
 
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create password", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Password format is incorrect. Please follow the specified format and try again!", nil)
 		return
 	}
 
@@ -33,24 +34,27 @@ func (h *handler) AdminRegister(c *gin.Context) {
 
 	if err := h.Repository.CreateAdmin(&admin); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't create new admin", nil)
+		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Register Successful", admin)
+	helper.SuccessResponse(c, http.StatusOK, "Register successful! Welcome, "+admin.Shop+"!", admin)
 }
 
 func (h *handler) AdminLogin(c *gin.Context) {
 	adminLogin := model.AdminLogin{}
 	if err := c.ShouldBindJSON(&adminLogin); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
+		return
 	}
 
 	adminFound, err := h.Repository.FindAdminByEmail(&adminLogin)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't find the admin", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again with a valid email!", nil)
+		return
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(adminFound.Password), []byte(adminLogin.Password)); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't compare the password", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", nil)
 		return
 	}
 
@@ -67,13 +71,13 @@ func (h *handler) AdminLogin(c *gin.Context) {
 	tokenString, err := token.SignedString([]byte(h.config.GetEnv("SECRET_KEY")))
 
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create token", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create token JWT. Please try again to login!", nil)
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Login Successful", nil)
+	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+adminFound.Shop+"!", nil)
 	c.JSON(http.StatusOK, gin.H{
-		"jwtToken": tokenString,
+		"JWT Token": tokenString,
 	})
 
 }
@@ -81,37 +85,36 @@ func (h *handler) AdminLogin(c *gin.Context) {
 func (h *handler) AdminUpdate(c *gin.Context) {
 	adminClaims, _ := c.Get("admin")
 	admin := adminClaims.(model.AdminClaims)
-	// idReq := model.GetAdminByID{}
 	updateAdmin := model.AdminUpdate{}
 
-	// if err := c.ShouldBindUri(&idReq); err != nil {
-	// 	helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
-	// }
-
 	if err := c.ShouldBindJSON(&updateAdmin); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
+		return
 	}
 
 	adminFound, err := h.Repository.FindAdminByID(admin.ID)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't find the admin", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again later!", nil)
+		return
 	}
 
 	if updateAdmin.Password != "" {
 		hashPassword, err := bcrypt.GenerateFromPassword([]byte(updateAdmin.Password), 12)
 		if err != nil {
-			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create password", nil)
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", nil)
 			return
 		}
 		adminFound.Password = string(hashPassword)
-	} else if updateAdmin.Shop != "" {
+	}
+	if updateAdmin.Shop != "" {
 		adminFound.Shop = updateAdmin.Shop
-	} else if updateAdmin.Email != nil {
+	}
+	if updateAdmin.Email != nil {
 		adminFound.Email = updateAdmin.Email
 	}
 
 	if err := h.Repository.UpdateAdmin(adminFound); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed updated admin", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
 		return
 	}
 

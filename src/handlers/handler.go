@@ -41,7 +41,7 @@ func (h *handler) registerRoutes() {
 	user := h.http.Group(v1.BasePath() + "/user")
 	user.POST("/signup", h.UserRegister)
 	user.GET("/login", h.UserLogin)
-	user.Use(middleware.IsUserLoggedIn()).PUT("/market/update", h.UserUpdate)
+	user.Use(middleware.IsUserLoggedIn()).PUT("/update", h.UserUpdate)
 
 	//Admin
 	admin := h.http.Group(v1.BasePath() + "/admin")
@@ -56,7 +56,8 @@ func (h *handler) registerRoutes() {
 		POST("/product/upload/image", h.PostImageProduct).
 		PUT("/product/:product_id", h.UpdateProduct).
 		GET("/product", h.GetAllProduct).
-		GET("/product/:product_id", h.GetProductByID)
+		GET("/product/:product_id", h.GetProductByID).
+		DELETE("/product/:product_id", h.DeleteProductByID)
 
 	//Product for user
 	product_user := h.http.Group(v1.BasePath() + "/user/market")

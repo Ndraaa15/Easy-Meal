@@ -7,14 +7,14 @@ import (
 )
 
 type AdminRegister struct {
-	Shop     string  `json:"shop" binding:"required"`
-	Email    *string `json:"email" binding:"required"`
-	Password string  `json:"password" binding:"required"`
+	Shop     string  `json:"shop" binding:"required" required:"true"`
+	Email    *string `json:"email" binding:"required" required:"true"`
+	Password string  `json:"password" binding:"required" required:"true"`
 }
 
 type AdminLogin struct {
-	Email    *string `json:"email" binding:"required"`
-	Password string  `json:"password" binding:"required"`
+	Email    *string `json:"email" binding:"required" required:"true"`
+	Password string  `json:"password" binding:"required" required:"true"`
 }
 
 type AdminUpdate struct {
