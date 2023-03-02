@@ -56,12 +56,15 @@ func (h *handler) AdminLogin(c *gin.Context) {
 
 	//JWT TOKEN
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": adminFound.Shop,
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
+		"sub":   adminFound.Shop,
+		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"shop":  adminFound.Shop,
+		"email": adminFound.Email,
+		"id":    adminFound.ID,
 	})
 
 	//GET JWT TOKEN
-	tokenString, err := token.SignedString((h.config.GetEnv("SECRET_KEY")))
+	tokenString, err := token.SignedString([]byte(h.config.GetEnv("SECRET_KEY")))
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create token", nil)
@@ -70,7 +73,7 @@ func (h *handler) AdminLogin(c *gin.Context) {
 
 	helper.SuccessResponse(c, http.StatusOK, "Login Successful", nil)
 	c.JSON(http.StatusOK, gin.H{
-		"token JWT": tokenString,
+		"jwtToken": tokenString,
 	})
 
 }
@@ -93,7 +96,7 @@ func (h *handler) AdminUpdate(c *gin.Context) {
 	}
 
 	if updateAdmin.Password != "" {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(updateAdmin.Password), 20)
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(updateAdmin.Password), 12)
 		if err != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create password", nil)
 			return

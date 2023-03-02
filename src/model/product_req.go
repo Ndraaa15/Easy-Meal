@@ -1,10 +1,6 @@
 package model
 
-import "gorm.io/gorm"
-
 type NewProduct struct {
-	gorm.Model
-	ID          uint    `json:"ID" gorm:"primaryKey" binding:"required"`
 	ImageLink   string  `json:"img_link" binding:"required"`
 	Name        string  `json:"name" binding:"required"`
 	Price       float64 `json:"price" binding:"required" `

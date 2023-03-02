@@ -41,21 +41,22 @@ func (h *handler) registerRoutes() {
 	user := h.http.Group(v1.BasePath() + "/user")
 	user.POST("/signup", h.UserRegister)
 	user.GET("/login", h.UserLogin)
-	user.PUT("/update/:id", h.UserUpdate)
+	user.Use(middleware.IsUserLoggedIn()).PUT("/update/:id", h.UserUpdate)
 
 	//Admin
 	admin := h.http.Group(v1.BasePath() + "/admin")
 	admin.POST("/signup", h.AdminRegister)
 	admin.GET("/login", h.AdminLogin)
-	admin.PUT("/update/:id", h.AdminUpdate)
+	admin.Use(middleware.IsAdminLoggedIn()).PUT("/update/:id", h.AdminUpdate)
 
 	//Product
 	product := h.http.Group(v1.BasePath() + "/admin/market")
 	product.Use(middleware.IsAdminLoggedIn()).
-		POST("/product", h.PostProduct).
-		PUT("/product/:product_id").
-		GET("/product").
-		GET("/product/:product_id")
+		POST("/product/upload", h.PostProduct).
+		POST("/product/upload/image", h.PostImageProduct).
+		PUT("/product/:product_id", h.UpdateProduct).
+		GET("/product", h.GetAllProduct).
+		GET("/product/:product_id", h.GetProductByID)
 
 }
 
