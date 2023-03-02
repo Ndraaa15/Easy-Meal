@@ -41,7 +41,7 @@ func (h *handler) registerRoutes() {
 	user := h.http.Group(v1.BasePath() + "/user")
 	user.POST("/signup", h.UserRegister)
 	user.GET("/login", h.UserLogin)
-	user.Use(middleware.IsUserLoggedIn()).PUT("/update", h.UserUpdate)
+	user.Use(middleware.IsUserLoggedIn()).PUT("/market/update", h.UserUpdate)
 
 	//Admin
 	admin := h.http.Group(v1.BasePath() + "/admin")
@@ -49,14 +49,20 @@ func (h *handler) registerRoutes() {
 	admin.GET("/login", h.AdminLogin)
 	admin.Use(middleware.IsAdminLoggedIn()).PUT("/update", h.AdminUpdate)
 
-	//Product
-	product := h.http.Group(v1.BasePath() + "/admin/market")
-	product.Use(middleware.IsAdminLoggedIn()).
+	//Product for admin
+	product_admin := h.http.Group(v1.BasePath() + "/admin/market")
+	product_admin.Use(middleware.IsAdminLoggedIn()).
 		POST("/product/upload", h.PostProduct).
 		POST("/product/upload/image", h.PostImageProduct).
 		PUT("/product/:product_id", h.UpdateProduct).
 		GET("/product", h.GetAllProduct).
 		GET("/product/:product_id", h.GetProductByID)
+
+	//Product for user
+	product_user := h.http.Group(v1.BasePath() + "/user/market")
+	product_user.Use(middleware.IsUserLoggedIn()).
+		GET("/market/product", h.GetAllProduct).
+		GET("/market/product/:product_id", h.GetProductByID)
 
 }
 

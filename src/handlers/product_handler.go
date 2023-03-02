@@ -4,6 +4,7 @@ import (
 	"bcc-project-v/src/entities"
 	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
+	"fmt"
 
 	"net/http"
 
@@ -92,9 +93,14 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 }
 
 func (h *handler) GetAllProduct(c *gin.Context) {
-
+	products, err := h.Repository.GetAllProduct()
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Can't find the product", nil)
+	}
+	helper.SuccessResponse(c, http.StatusBadRequest, "Product found", products)
 }
 
 func (h *handler) GetProductByID(c *gin.Context) {
-
+	idProduct := model.GetProductByID{}
+	fmt.Println(idProduct)
 }

@@ -19,3 +19,9 @@ func (r *Repository) SaveProduct(product *entities.Product) error {
 	err := r.db.Save(product).Error
 	return err
 }
+
+func (r *Repository) GetAllProduct() ([]entities.Product, error) {
+	products := []entities.Product{}
+	err := r.db.Find(&products).Error
+	return products, err
+}
