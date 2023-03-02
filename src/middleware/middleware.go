@@ -52,8 +52,8 @@ func IsUserLoggedIn() gin.HandlerFunc {
 		}
 
 		tokenString := tokenParts[1]
-		admin := model.AdminClaims{}
-		token, err := jwt.ParseWithClaims(tokenString, &admin, func(token *jwt.Token) (interface{}, error) {
+		user := model.UserClaims{}
+		token, err := jwt.ParseWithClaims(tokenString, &user, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
@@ -66,7 +66,7 @@ func IsUserLoggedIn() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("admin", admin)
+		c.Set("user", user)
 		c.Next()
 	}
 }

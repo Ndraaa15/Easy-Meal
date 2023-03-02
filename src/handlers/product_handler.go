@@ -58,7 +58,37 @@ func (h *handler) PostImageProduct(c *gin.Context) {
 }
 
 func (h *handler) UpdateProduct(c *gin.Context) {
+	idProduct := model.GetProductByID{}
+	UpdateProduct := model.UpdateProduct{}
 
+	if err := c.ShouldBindUri(&idProduct); err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
+	}
+
+	if err := c.ShouldBindJSON(&UpdateProduct); err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
+	}
+
+	productFound, err := h.Repository.GetProductByID(idProduct.ID)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Product not found", nil)
+	}
+
+	if productFound.Name != "" {
+		productFound.Name = UpdateProduct.Name
+	} else if productFound.Price != 0 {
+		productFound.Price = UpdateProduct.Price
+	} else if productFound.Stock != 0 {
+		productFound.Stock = UpdateProduct.Stock
+	} else if productFound.Description != "" {
+		productFound.Description = UpdateProduct.Description
+	}
+
+	if err := h.Repository.SaveProduct(productFound); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed update product", nil)
+	}
+
+	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &productFound)
 }
 
 func (h *handler) GetAllProduct(c *gin.Context) {

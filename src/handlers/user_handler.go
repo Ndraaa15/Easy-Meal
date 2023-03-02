@@ -4,6 +4,7 @@ import (
 	"bcc-project-v/src/entities"
 	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -52,26 +53,29 @@ func (h *handler) UserLogin(c *gin.Context) {
 		return
 	}
 
-	user, err := h.Repository.FindUser(&loginUser)
+	userFound, err := h.Repository.FindUser(&loginUser)
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't find the user", nil)
 		return
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginUser.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(userFound.Password), []byte(loginUser.Password)); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't compare the password", nil)
 		return
 	}
 
 	//JWT TOKEN
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.Username,
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
+		"sub":      userFound.Username,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"fname":    userFound.FName,
+		"id":       userFound.ID,
+		"username": userFound.Username,
 	})
 
 	//GET JWT TOKEN
-	tokenString, err := token.SignedString([]byte(user.Password))
+	tokenString, err := token.SignedString([]byte(h.config.GetEnv("SECRET_KEY")))
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create token", nil)
@@ -85,24 +89,29 @@ func (h *handler) UserLogin(c *gin.Context) {
 }
 
 func (h *handler) UserUpdate(c *gin.Context) {
-	idReq := model.GetUserByID{}
+
+	userClaims, _ := c.Get("user")
+	user := userClaims.(model.UserClaims)
+	// idReq := model.GetUserByID{}
 	updateUser := model.UpdateUser{}
 
-	if err := c.ShouldBindUri(&idReq); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Update failed", nil)
-		return
-	}
+	// if err := c.ShouldBindUri(&idReq); err != nil {
+	// 	helper.ErrorResponse(c, http.StatusBadRequest, "Update failed", nil)
+	// 	return
+	// }
 
 	if err := c.ShouldBindJSON(&updateUser); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Update failed", nil)
 		return
 	}
 
-	userFound, err := h.Repository.FindUserByID(idReq.ID)
+	userFound, err := h.Repository.FindUserByID(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to find user", nil)
 		return
 	}
+
+	fmt.Println(user.ID)
 
 	if updateUser.Password != "" {
 		hashPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 12)

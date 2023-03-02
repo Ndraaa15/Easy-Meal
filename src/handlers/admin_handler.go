@@ -79,18 +79,20 @@ func (h *handler) AdminLogin(c *gin.Context) {
 }
 
 func (h *handler) AdminUpdate(c *gin.Context) {
-	idReq := model.GetAdminByID{}
+	adminClaims, _ := c.Get("admin")
+	admin := adminClaims.(model.AdminClaims)
+	// idReq := model.GetAdminByID{}
 	updateAdmin := model.AdminUpdate{}
 
-	if err := c.ShouldBindUri(&idReq); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
-	}
+	// if err := c.ShouldBindUri(&idReq); err != nil {
+	// 	helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
+	// }
 
 	if err := c.ShouldBindJSON(&updateAdmin); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Bad request", nil)
 	}
 
-	adminFound, err := h.Repository.FindAdminByID(idReq.ID)
+	adminFound, err := h.Repository.FindAdminByID(admin.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't find the admin", nil)
 	}
