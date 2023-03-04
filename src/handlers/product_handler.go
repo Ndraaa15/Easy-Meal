@@ -13,7 +13,7 @@ import (
 
 func (h *handler) PostProduct(c *gin.Context) {
 	sellerClaims, _ := c.Get("seller")
-	admin := sellerClaims.(model.SellerClaims)
+	seller := sellerClaims.(model.SellerClaims)
 
 	newProduct := model.NewProduct{}
 	if err := c.ShouldBindJSON(&newProduct); err != nil {
@@ -26,7 +26,7 @@ func (h *handler) PostProduct(c *gin.Context) {
 		Price:       newProduct.Price,
 		Description: newProduct.Description,
 		Stock:       newProduct.Stock,
-		AdminID:     admin.ID,
+		SellerID:    seller.ID,
 	}
 
 	if err := h.Repository.CreateProduct(&product); err != nil {

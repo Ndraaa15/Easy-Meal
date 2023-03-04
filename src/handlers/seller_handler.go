@@ -12,7 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *handler) AdminRegister(c *gin.Context) {
+func (h *handler) SellerRegister(c *gin.Context) {
 	newSeller := model.SellerRegister{}
 	if err := c.ShouldBindJSON(&newSeller); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
@@ -32,39 +32,39 @@ func (h *handler) AdminRegister(c *gin.Context) {
 		Password: string(hashPassword),
 	}
 
-	if err := h.Repository.CreateAdmin(&seller); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't create new admin", nil)
+	if err := h.Repository.CreateSeller(&seller); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't create new seller", nil)
 		return
 	}
 
 	helper.SuccessResponse(c, http.StatusOK, "Register successful! Welcome, "+seller.Shop+"!", seller)
 }
 
-func (h *handler) AdminLogin(c *gin.Context) {
+func (h *handler) SellerLogin(c *gin.Context) {
 	sellerLogin := model.SellerLogin{}
 	if err := c.ShouldBindJSON(&sellerLogin); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
 		return
 	}
 
-	adminFound, err := h.Repository.FindAdminByEmail(&sellerLogin)
+	sellerFound, err := h.Repository.FindSellerByEmail(&sellerLogin)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again with a valid email!", nil)
 		return
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(adminFound.Password), []byte(sellerLogin.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(sellerFound.Password), []byte(sellerLogin.Password)); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", nil)
 		return
 	}
 
 	//JWT TOKEN
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":   adminFound.Shop,
+		"sub":   sellerFound.Shop,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
-		"shop":  adminFound.Shop,
-		"email": adminFound.Email,
-		"id":    adminFound.ID,
+		"shop":  sellerFound.Shop,
+		"email": sellerFound.Email,
+		"id":    sellerFound.ID,
 	})
 
 	//GET JWT TOKEN
@@ -75,15 +75,15 @@ func (h *handler) AdminLogin(c *gin.Context) {
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+adminFound.Shop+"!", nil)
+	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+sellerFound.Shop+"!", nil)
 	c.JSON(http.StatusOK, gin.H{
 		"JWT Token": tokenString,
 	})
 
 }
 
-func (h *handler) AdminUpdate(c *gin.Context) {
-	sellerClaims, _ := c.Get("admin")
+func (h *handler) SellerUpdate(c *gin.Context) {
+	sellerClaims, _ := c.Get("seller")
 	seller := sellerClaims.(model.SellerClaims)
 	updateAdmin := model.SellerUpdate{}
 
@@ -92,7 +92,7 @@ func (h *handler) AdminUpdate(c *gin.Context) {
 		return
 	}
 
-	adminFound, err := h.Repository.FindAdminByID(seller.ID)
+	adminFound, err := h.Repository.FindSellerByID(seller.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again later!", nil)
 		return
@@ -113,7 +113,7 @@ func (h *handler) AdminUpdate(c *gin.Context) {
 		adminFound.Email = updateAdmin.Email
 	}
 
-	if err := h.Repository.UpdateAdmin(adminFound); err != nil {
+	if err := h.Repository.UpdateSeller(adminFound); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
 		return
 	}

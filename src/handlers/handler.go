@@ -45,9 +45,9 @@ func (h *handler) registerRoutes() {
 
 	//Admin
 	admin := h.http.Group(v1.BasePath() + "/admin")
-	admin.POST("/signup", h.AdminRegister)
-	admin.GET("/login", h.AdminLogin)
-	admin.Use(middleware.IsAdminLoggedIn()).PUT("/update", h.AdminUpdate)
+	admin.POST("/signup", h.SellerRegister)
+	admin.GET("/login", h.SellerLogin)
+	admin.Use(middleware.IsAdminLoggedIn()).PUT("/update", h.SellerUpdate)
 
 	//Product for admin
 	product_admin := h.http.Group(v1.BasePath() + "/admin/market")
