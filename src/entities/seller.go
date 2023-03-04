@@ -2,7 +2,7 @@ package entities
 
 import "gorm.io/gorm"
 
-type Admin struct {
+type Seller struct {
 	gorm.Model
 	ID       uint      `json:"ID" gorm:"primaryKey" binding:"required"`
 	Shop     string    `json:"shop" binding:"required"`

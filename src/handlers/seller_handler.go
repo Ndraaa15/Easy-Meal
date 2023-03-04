@@ -13,47 +13,47 @@ import (
 )
 
 func (h *handler) AdminRegister(c *gin.Context) {
-	newAdmin := model.AdminRegister{}
-	if err := c.ShouldBindJSON(&newAdmin); err != nil {
+	newSeller := model.SellerRegister{}
+	if err := c.ShouldBindJSON(&newSeller); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
 		return
 	}
 
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(newAdmin.Password), 12)
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(newSeller.Password), 12)
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Password format is incorrect. Please follow the specified format and try again!", nil)
 		return
 	}
 
-	admin := entities.Admin{
-		Shop:     newAdmin.Shop,
-		Email:    newAdmin.Email,
+	seller := entities.Seller{
+		Shop:     newSeller.Shop,
+		Email:    newSeller.Email,
 		Password: string(hashPassword),
 	}
 
-	if err := h.Repository.CreateAdmin(&admin); err != nil {
+	if err := h.Repository.CreateAdmin(&seller); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't create new admin", nil)
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Register successful! Welcome, "+admin.Shop+"!", admin)
+	helper.SuccessResponse(c, http.StatusOK, "Register successful! Welcome, "+seller.Shop+"!", seller)
 }
 
 func (h *handler) AdminLogin(c *gin.Context) {
-	adminLogin := model.AdminLogin{}
-	if err := c.ShouldBindJSON(&adminLogin); err != nil {
+	sellerLogin := model.SellerLogin{}
+	if err := c.ShouldBindJSON(&sellerLogin); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
 		return
 	}
 
-	adminFound, err := h.Repository.FindAdminByEmail(&adminLogin)
+	adminFound, err := h.Repository.FindAdminByEmail(&sellerLogin)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again with a valid email!", nil)
 		return
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(adminFound.Password), []byte(adminLogin.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(adminFound.Password), []byte(sellerLogin.Password)); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", nil)
 		return
 	}
@@ -83,16 +83,16 @@ func (h *handler) AdminLogin(c *gin.Context) {
 }
 
 func (h *handler) AdminUpdate(c *gin.Context) {
-	adminClaims, _ := c.Get("admin")
-	admin := adminClaims.(model.AdminClaims)
-	updateAdmin := model.AdminUpdate{}
+	sellerClaims, _ := c.Get("admin")
+	seller := sellerClaims.(model.SellerClaims)
+	updateAdmin := model.SellerUpdate{}
 
 	if err := c.ShouldBindJSON(&updateAdmin); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
 		return
 	}
 
-	adminFound, err := h.Repository.FindAdminByID(admin.ID)
+	adminFound, err := h.Repository.FindAdminByID(seller.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again later!", nil)
 		return

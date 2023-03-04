@@ -11,4 +11,5 @@ type Product struct {
 	AdminID     uint    `json:"admin_id" gorm:"foreignKey:AdminID"`
 	Description string  `json:"description" binding:"required"`
 	Stock       uint    `json:"stock" binding:"required"`
+	Carts       []Cart  `gorm:"many2many:cart_products"`
 }

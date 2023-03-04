@@ -12,5 +12,4 @@ type User struct {
 	Password string `json:"password" binding:"required"`
 	Address  string `json:"address" binding:"required"`
 	Contact  string `json:"contact" binding:"required"`
-	Wishlist []Wishlist
 }

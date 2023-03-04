@@ -6,34 +6,34 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type AdminRegister struct {
+type SellerRegister struct {
 	Shop     string  `json:"shop" binding:"required" required:"true"`
 	Email    *string `json:"email" binding:"required" required:"true"`
 	Password string  `json:"password" binding:"required" required:"true"`
 }
 
-type AdminLogin struct {
+type SellerLogin struct {
 	Email    *string `json:"email" binding:"required" required:"true"`
 	Password string  `json:"password" binding:"required" required:"true"`
 }
 
-type AdminUpdate struct {
+type SellerUpdate struct {
 	Shop     string
 	Email    *string
 	Password string
 }
 
-type GetAdminByID struct {
+type GetSellerByID struct {
 	ID uint `uri:"id" binding:"required"`
 }
 
-type AdminClaims struct {
+type SellerClaims struct {
 	ID uint `json:"id"`
 	jwt.RegisteredClaims
 }
 
-func NewAdminClaims(id uint, exp time.Duration) AdminClaims {
-	return AdminClaims{
+func NewAdminClaims(id uint, exp time.Duration) SellerClaims {
+	return SellerClaims{
 		ID: id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(exp)),

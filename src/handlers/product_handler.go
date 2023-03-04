@@ -12,8 +12,8 @@ import (
 )
 
 func (h *handler) PostProduct(c *gin.Context) {
-	adminClaims, _ := c.Get("admin")
-	admin := adminClaims.(model.AdminClaims)
+	sellerClaims, _ := c.Get("seller")
+	admin := sellerClaims.(model.SellerClaims)
 
 	newProduct := model.NewProduct{}
 	if err := c.ShouldBindJSON(&newProduct); err != nil {

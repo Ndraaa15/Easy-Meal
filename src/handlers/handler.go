@@ -63,7 +63,8 @@ func (h *handler) registerRoutes() {
 	product_user := h.http.Group(v1.BasePath() + "/user/market")
 	product_user.Use(middleware.IsUserLoggedIn()).
 		GET("/product", h.GetAllProduct).
-		GET("/product/:product_id", h.GetProductByID)
+		GET("/product/:product_id", h.GetProductByID).
+		POST("/cart", h.AddProductToCart)
 
 }
 
