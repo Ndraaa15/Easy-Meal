@@ -4,7 +4,7 @@ type NewProduct struct {
 	ImageLink   string  `json:"img_link" `
 	Name        string  `json:"name" binding:"required" required:"true"`
 	Price       float64 `json:"price" binding:"required" required:"true"`
-	AdminID     uint    `json:"admin_id" gorm:"foreignKey:AdminID" required:"true"`
+	SellerID    uint    `json:"seller_id" gorm:"foreignKey:SellerID" required:"true"`
 	Description string  `json:"description" binding:"required" required:"true"`
 	Stock       uint    `json:"stock" binding:"required" required:"true"`
 }

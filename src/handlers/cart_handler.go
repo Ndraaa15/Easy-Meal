@@ -47,7 +47,7 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 	cartproduct := entities.CartProduct{}
 	for _, p := range cart.Products {
 		if p.ProductID == uint(newItem.ProductID) {
-			cartproduct.Quantity += newItem.Quantity
+			cartproduct.Quantity = newItem.Quantity
 			if err := h.Repository.SaveCart(&cart); err != nil {
 				helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save cart", nil)
 				return
@@ -66,7 +66,6 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save cart", nil)
 		return
 	}
-
 	helper.SuccessResponse(c, http.StatusOK, "Item added to cart", nil)
 }
 
@@ -74,10 +73,10 @@ func (h *handler) RemoveItemFromCart(c *gin.Context) {
 
 }
 
-func (h *handler) BuyFromCart(c *gin.Context) {
+func (h *handler) GetProductFromCart(c *gin.Context) {
 
 }
 
-func (h *handler) InstantBuy(c *gin.Context) {
+func (h *handler) RemoveProductFromCart(c *gin.Context) {
 
 }
