@@ -23,19 +23,15 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to parse string into uint32", nil)
 		return
 	}
-
 	// find existing cart
 	cart := entities.Cart{}
 	if err := h.Repository.FindCartByUserID(user.ID, &cart); err != nil {
 		cart.UserID = user.ID
-
 		cartProduct := entities.CartProduct{
 			ProductID: uint(productID),
 			Quantity:  newItem.Quantity,
 		}
-
 		cart.Products = append(cart.Products, cartProduct)
-
 		if err := h.Repository.CreateCart(&cart); err != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed save product to cart", nil)
 			return
@@ -43,7 +39,6 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		helper.SuccessResponse(c, http.StatusOK, "Item added to cart", nil)
 		return
 	}
-
 	cartproduct := entities.CartProduct{}
 	for _, p := range cart.Products {
 		if p.ProductID == uint(newItem.ProductID) {
@@ -61,7 +56,6 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		Quantity:  newItem.Quantity,
 	}
 	cart.Products = append(cart.Products, cartProduct)
-
 	if err := h.Repository.SaveCart(&cart); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save cart", nil)
 		return

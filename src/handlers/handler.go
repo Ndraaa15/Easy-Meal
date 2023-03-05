@@ -65,7 +65,6 @@ func (h *handler) registerRoutes() {
 		GET("/product", h.GetAllProduct).
 		GET("/product/:product_id", h.GetProductByID).
 		POST("/product", h.AddProductToCart)
-
 }
 
 func (h *handler) Run() {
