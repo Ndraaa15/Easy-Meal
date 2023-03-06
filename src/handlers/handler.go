@@ -64,7 +64,9 @@ func (h *handler) registerRoutes() {
 	product_user.Use(middleware.IsUserLoggedIn()).
 		GET("/product", h.GetAllProduct).
 		GET("/product/:product_id", h.GetProductByID).
-		POST("/product", h.AddProductToCart)
+		POST("/cart", h.AddProductToCart).
+		DELETE("/cart", h.RemoveProductFromCart).
+		GET("/cart", h.GetCart)
 }
 
 func (h *handler) Run() {

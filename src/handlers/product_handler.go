@@ -34,7 +34,7 @@ func (h *handler) PostProduct(c *gin.Context) {
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Create product Successful", product)
+	helper.SuccessResponse(c, http.StatusOK, "Create product Successful", &product)
 }
 
 func (h *handler) PostImageProduct(c *gin.Context) {
