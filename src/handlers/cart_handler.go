@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	// "gorm.io/gorm"
 )
 
 func (h *handler) AddProductToCart(c *gin.Context) {
@@ -21,7 +22,6 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 	}
 
 	productIDStr := c.Query("Product_ID")
-
 	productID, err := strconv.ParseUint(productIDStr, 10, 64)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to parse string into uint64", nil)
@@ -31,44 +31,37 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 	// find existing cart
 	cart := entities.Cart{}
 	if err := h.Repository.FindCartByUserID(user.ID, &cart); err != nil {
-		cart.UserID = user.ID
-		cartProduct := entities.CartProduct{
-			ProductID: uint(productID),
-			Quantity:  newItem.Quantity,
-		}
-		h.Repository.CreateCartProduct(&cartProduct)
-		cart.Products = append(cart.Products, cartProduct)
-		if err := h.Repository.CreateCart(&cart); err != nil {
-			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to created cart", nil)
-			return
-		}
-		helper.SuccessResponse(c, http.StatusOK, "Item added to cart", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "Can't find the cart", nil)
 		return
 	}
 
+	cartFound, err := h.Repository.GetCart(user.ID)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Can't find the cart", nil)
+	}
 	cartProduct := entities.CartProduct{
 		ProductID: uint(productID),
 		Quantity:  newItem.Quantity,
 	}
 
-	for i, p := range cart.Products {
-		if p.ProductID == cartProduct.ProductID {
-			cart.Products[i].Quantity += cartProduct.Quantity
-			if err := h.Repository.SaveCart(&cart); err != nil {
-				helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save cart", nil)
-				return
-			}
-			helper.SuccessResponse(c, http.StatusOK, "Item added to cart", nil)
-			return
+	found := false
+	for i, p := range cartFound.CartProducts {
+		if p.ProductID == uint(productID) {
+			cartFound.CartProducts[i].Quantity += cartProduct.Quantity
+			found = true
+			break
 		}
 	}
 
-	cart.Products = append(cart.Products, cartProduct)
+	if !found {
+		cart.CartProducts = append(cartFound.CartProducts, cartProduct)
+	}
+
+	cart.CartProducts = append(cart.CartProducts, cartProduct)
 	if err := h.Repository.SaveCart(&cart); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save cart", nil)
 		return
 	}
-
 	helper.SuccessResponse(c, http.StatusOK, "Product added to cart", nil)
 }
 
@@ -82,7 +75,6 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 	}
 
 	productIDStr := c.Query("Product_ID")
-
 	productID, err := strconv.ParseUint(productIDStr, 10, 64)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to parse string into uint64", nil)
@@ -98,5 +90,14 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 }
 
 func (h *handler) GetCart(c *gin.Context) {
+	userClaims, _ := c.Get("user")
+	user := userClaims.(model.UserClaims)
+	cartFound := entities.Cart{}
+	if err := h.Repository.FindCartByUserID(user.ID, &cartFound); err != nil {
+		helper.ErrorResponse(c, http.StatusBadGateway, "Can't find the cart", nil)
+		return
+	}
+
+	helper.SuccessResponse(c, http.StatusOK, "Cart found!", &cartFound)
 
 }

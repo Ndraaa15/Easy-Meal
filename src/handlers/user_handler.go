@@ -82,10 +82,7 @@ func (h *handler) UserLogin(c *gin.Context) {
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+userFound.Username+"!", nil)
-	c.JSON(http.StatusOK, gin.H{
-		"JWT Token": tokenString,
-	})
+	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+userFound.Username+"!", tokenString)
 }
 
 func (h *handler) UserUpdate(c *gin.Context) {

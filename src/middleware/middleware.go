@@ -12,6 +12,7 @@ import (
 )
 
 func IsAdminLoggedIn() gin.HandlerFunc {
+	//Query admin
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 
@@ -42,6 +43,8 @@ func IsAdminLoggedIn() gin.HandlerFunc {
 }
 
 func IsUserLoggedIn() gin.HandlerFunc {
+	//Query user
+
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 
