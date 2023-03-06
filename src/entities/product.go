@@ -11,6 +11,5 @@ type Product struct {
 	SellerID     uint          `json:"seller_id" binding:"required" gorm:"foreignKey:SellerID"`
 	Description  string        `json:"description" binding:"required"`
 	Stock        uint          `json:"stock" binding:"required"`
-	CartProducts []CartProduct `json:"cart_product"`
-	// Carts       []Cart  `json:"carts" gorm:"many2many:cart_products;"`
+	CartProducts []CartProduct `json:"cart_product" gorm:"many2many:cart_products"`
 }

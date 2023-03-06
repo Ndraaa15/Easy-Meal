@@ -4,7 +4,6 @@ import (
 	"bcc-project-v/src/entities"
 	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -101,9 +100,6 @@ func (h *handler) UserUpdate(c *gin.Context) {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "User not found. Please try again later!", nil)
 		return
 	}
-
-	fmt.Println(user.ID)
-
 	if updateUser.Password != "" {
 		hashPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 12)
 		if err != nil {

@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"bcc-project-v/sdk/config"
+	"bcc-project-v/src/entities"
+	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
 	"fmt"
 	"net/http"
@@ -9,13 +11,27 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"gorm.io/gorm"
 )
 
-func IsAdminLoggedIn() gin.HandlerFunc {
-	//Query admin
-	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
+type Repository struct {
+	db *gorm.DB
+}
 
+func NewRepository(db *gorm.DB) *Repository {
+	return &Repository{db}
+}
+
+func (r *Repository) IsSellerLoggedIn() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sellerClaims, _ := c.Get("seller")
+		sellerFromToken := sellerClaims.(model.SellerClaims)
+		sellerCheck := entities.Seller{}
+		if err := r.db.Debug().First(&sellerCheck, sellerFromToken.ID).Error; err != nil {
+			helper.ErrorResponse(c, http.StatusBadRequest, "Can't find seller. Please try again!", nil)
+			return
+		}
+		authHeader := c.GetHeader("Authorization")
 		tokenParts := strings.SplitN(authHeader, " ", 2)
 		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -42,10 +58,15 @@ func IsAdminLoggedIn() gin.HandlerFunc {
 	}
 }
 
-func IsUserLoggedIn() gin.HandlerFunc {
-	//Query user
-
+func (r *Repository) IsUserLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		userClaims, _ := c.Get("user")
+		userFromToken := userClaims.(model.UserClaims)
+		userCheck := entities.User{}
+		if err := r.db.Debug().First(&userCheck, userFromToken.ID).Error; err != nil {
+			helper.ErrorResponse(c, http.StatusBadRequest, "Can't find user. Please try again!", nil)
+			return
+		}
 		authHeader := c.GetHeader("Authorization")
 
 		tokenParts := strings.SplitN(authHeader, " ", 2)
