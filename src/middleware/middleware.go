@@ -2,8 +2,6 @@ package middleware
 
 import (
 	"bcc-project-v/sdk/config"
-	"bcc-project-v/src/entities"
-	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
 	"fmt"
 	"net/http"
@@ -24,13 +22,7 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (r *Repository) IsSellerLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sellerClaims, _ := c.Get("seller")
-		sellerFromToken := sellerClaims.(model.SellerClaims)
-		sellerCheck := entities.Seller{}
-		if err := r.db.Debug().First(&sellerCheck, sellerFromToken.ID).Error; err != nil {
-			helper.ErrorResponse(c, http.StatusBadRequest, "Can't find seller. Please try again!", nil)
-			return
-		}
+
 		authHeader := c.GetHeader("Authorization")
 		tokenParts := strings.SplitN(authHeader, " ", 2)
 		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
@@ -52,7 +44,11 @@ func (r *Repository) IsSellerLoggedIn() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
 		}
-
+		// Checking seller (?)
+		// if err := r.db.Debug().First(&entities.Seller{}, seller.ID).Error; err != nil {
+		// 	helper.ErrorResponse(c, http.StatusBadRequest, "Can't find seller. Please try again!", nil)
+		// 	return
+		// }
 		c.Set("seller", seller)
 		c.Next()
 	}
@@ -60,16 +56,9 @@ func (r *Repository) IsSellerLoggedIn() gin.HandlerFunc {
 
 func (r *Repository) IsUserLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userClaims, _ := c.Get("user")
-		userFromToken := userClaims.(model.UserClaims)
-		userCheck := entities.User{}
-		if err := r.db.Debug().First(&userCheck, userFromToken.ID).Error; err != nil {
-			helper.ErrorResponse(c, http.StatusBadRequest, "Can't find user. Please try again!", nil)
-			return
-		}
 		authHeader := c.GetHeader("Authorization")
-
 		tokenParts := strings.SplitN(authHeader, " ", 2)
+
 		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
@@ -89,6 +78,11 @@ func (r *Repository) IsUserLoggedIn() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
 		}
+		// Checking user (?)
+		// if err := r.db.Debug().First(&entities.User{}, &user.ID).Error; err != nil {
+		// 	helper.ErrorResponse(c, http.StatusBadRequest, err.Error(), nil)
+		// 	return
+		// }
 
 		c.Set("user", user)
 		c.Next()

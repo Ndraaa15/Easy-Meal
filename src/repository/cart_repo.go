@@ -20,8 +20,9 @@ func (r *Repository) FindCartByUserID(userID uint, cart *entities.Cart) error {
 
 func (r *Repository) GetCart(userID uint) (*entities.Cart, error) {
 	cart := entities.Cart{}
-	err := r.db.Where("user_id = ?", userID).First(&cart, userID).Error
+	err := r.db.Where("user_id = ?", userID).First(&cart).Error
 	return &cart, err
+
 }
 
 func (r *Repository) DeleteCartProduct(cart *entities.Cart, productID uint) error {

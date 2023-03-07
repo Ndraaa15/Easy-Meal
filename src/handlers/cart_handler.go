@@ -37,7 +37,8 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 
 	cartFound, err := h.Repository.GetCart(user.ID)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Can't find the cart", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, err.Error(), nil)
+		return
 	}
 	cartProduct := entities.CartProduct{
 		ProductID: uint(productID),
@@ -59,7 +60,7 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 
 	cart.CartProducts = append(cart.CartProducts, cartProduct)
 	if err := h.Repository.SaveCart(&cart); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save cart", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
 	helper.SuccessResponse(c, http.StatusOK, "Product added to cart", nil)

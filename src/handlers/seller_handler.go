@@ -91,32 +91,42 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
 		return
 	}
-
-	adminFound, err := h.Repository.FindSellerByID(seller.ID)
+	shop := c.PostForm("shop")
+	email := c.PostForm("email")
+	password := c.PostForm("password")
+	address := c.PostForm("address")
+	contact := c.PostForm("contact")
+	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again later!", nil)
 		return
 	}
 
-	if updateAdmin.Password != "" {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(updateAdmin.Password), 12)
+	if password != "" {
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 		if err != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", nil)
 			return
 		}
-		adminFound.Password = string(hashPassword)
+		sellerFound.Password = string(hashPassword)
 	}
-	if updateAdmin.Shop != "" {
-		adminFound.Shop = updateAdmin.Shop
+	if shop != "" {
+		sellerFound.Shop = shop
 	}
-	if updateAdmin.Email != nil {
-		adminFound.Email = updateAdmin.Email
+	if email != "" {
+		sellerFound.Email = &email
+	}
+	if address != "" {
+		sellerFound.Address = address
+	}
+	if contact != "" {
+		sellerFound.Contact = contact
 	}
 
-	if err := h.Repository.UpdateSeller(adminFound); err != nil {
+	if err := h.Repository.UpdateSeller(sellerFound); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &adminFound)
+	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &sellerFound)
 }

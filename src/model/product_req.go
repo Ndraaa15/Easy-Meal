@@ -1,14 +1,5 @@
 package model
 
-type NewProduct struct {
-	ImageLink   string  `json:"img_link" `
-	Name        string  `json:"name" binding:"required" required:"true"`
-	Price       float64 `json:"price" binding:"required" required:"true"`
-	SellerID    uint    `json:"seller_id" gorm:"foreignKey:SellerID" required:"true"`
-	Description string  `json:"description" binding:"required" required:"true"`
-	Stock       uint    `json:"stock" binding:"required" required:"true"`
-}
-
 type GetProductByID struct {
 	ID uint `uri:"product_id" binding:"required"`
 }

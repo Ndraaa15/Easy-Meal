@@ -88,43 +88,45 @@ func (h *handler) UserUpdate(c *gin.Context) {
 
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
-	updateUser := model.UpdateUser{}
 
-	if err := c.ShouldBindJSON(&updateUser); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
-		return
-	}
+	fname := c.PostForm("fname")
+	email := c.PostForm("email")
+	username := c.PostForm("username")
+	gender := c.PostForm("gender")
+	password := c.PostForm("password")
+	address := c.PostForm("address")
+	contact := c.PostForm("contact")
 
 	userFound, err := h.Repository.FindUserByID(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "User not found. Please try again later!", nil)
 		return
 	}
-	if updateUser.Password != "" {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 12)
+	if password != "" {
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 		if err != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", nil)
 			return
 		}
 		userFound.Password = string(hashPassword)
 	}
-	if updateUser.FName != "" {
-		userFound.FName = updateUser.FName
+	if fname != "" {
+		userFound.FName = fname
 	}
-	if updateUser.Email != "" {
-		userFound.Email = updateUser.Email
+	if email != "" {
+		userFound.Email = email
 	}
-	if updateUser.Username != "" {
-		userFound.Username = updateUser.Username
+	if username != "" {
+		userFound.Username = username
 	}
-	if updateUser.Address != "" {
-		userFound.Address = updateUser.Address
+	if address != "" {
+		userFound.Address = address
 	}
-	if updateUser.Contact != "" {
-		userFound.Contact = updateUser.Contact
+	if contact != "" {
+		userFound.Contact = contact
 	}
-	if updateUser.Gender != userFound.Gender {
-		userFound.Gender = updateUser.Gender
+	if gender != userFound.Gender {
+		userFound.Gender = gender
 	}
 
 	if err := h.Repository.UpdateUser(userFound); err != nil {

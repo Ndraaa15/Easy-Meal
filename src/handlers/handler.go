@@ -53,7 +53,6 @@ func (h *handler) registerRoutes() {
 	product_admin := h.http.Group(v1.BasePath() + "/admin/market")
 	product_admin.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).
 		POST("/product/upload", h.PostProduct).
-		POST("/product/upload/image", h.PostImageProduct).
 		PUT("/product/:product_id", h.UpdateProduct).
 		GET("/product", h.GetAllProduct).
 		GET("/product/:product_id", h.GetProductByID).
