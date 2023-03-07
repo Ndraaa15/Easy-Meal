@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	supabasestorageuploader "github.com/adityarizkyramadhan/supabase-storage-uploader"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -97,11 +98,29 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	address := c.PostForm("address")
 	contact := c.PostForm("contact")
 
+	supClient := supabasestorageuploader.NewSupabaseClient(
+		"https://arcudskzafkijqukfool.supabase.co",
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyY3Vkc2t6YWZraWpxdWtmb29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc2NDk3MjksImV4cCI6MTk5MzIyNTcyOX0.CjOVpoFAdq3U-AeAzsuyV6IGcqx2ZnaXjneTis5qd6w",
+		"bcc-project",
+		"user-image",
+	)
+	file, err := c.FormFile("user_image")
+	if err != nil {
+		c.JSON(400, gin.H{"data": err.Error()})
+		return
+	}
+	link, err := supClient.Upload(file)
+	if err != nil {
+		c.JSON(500, gin.H{"data": err.Error()})
+		return
+	}
+
 	userFound, err := h.Repository.FindUserByID(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "User not found. Please try again later!", nil)
 		return
 	}
+
 	if password != "" {
 		hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 		if err != nil {
@@ -125,8 +144,11 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	if contact != "" {
 		userFound.Contact = contact
 	}
-	if gender != userFound.Gender {
+	if gender != "" {
 		userFound.Gender = gender
+	}
+	if userFound.UserImage != link {
+		userFound.UserImage = link
 	}
 
 	if err := h.Repository.UpdateUser(userFound); err != nil {

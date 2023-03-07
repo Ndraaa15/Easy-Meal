@@ -26,8 +26,20 @@ func (r *Repository) GetAllProduct() ([]entities.Product, error) {
 	return products, err
 }
 
-func (r *Repository) DeleteProductByID(ID uint) (*entities.Product, error) {
+func (r *Repository) DeleteProductByID(SellerID, ID uint) (*entities.Product, error) {
 	product := entities.Product{}
-	err := r.db.Delete(&product, ID).Error
+	err := r.db.Where("seller_id = ?", SellerID).Delete(&product, ID).Error
 	return &product, err
+}
+
+func (r *Repository) GetSellerProduct(SellerID uint) ([]entities.Product, error) {
+	products := []entities.Product{}
+	err := r.db.Where("seller_id = ?", SellerID).Find(&products).Error
+	return products, err
+}
+
+func (r *Repository) GetSellerProductByID(SellerID uint, ProductID uint) (entities.Product, error) {
+	products := entities.Product{}
+	err := r.db.Where("seller_id = ?", SellerID).Where("ID = ?", ProductID).Find(&products).Error
+	return products, err
 }

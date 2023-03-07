@@ -44,18 +44,18 @@ func (h *handler) registerRoutes() {
 	user.Use(middleware.NewRepository(h.db).IsUserLoggedIn()).PUT("/update", h.UserUpdate)
 
 	//Admin
-	admin := h.http.Group(v1.BasePath() + "/admin")
-	admin.POST("/signup", h.SellerRegister)
-	admin.GET("/login", h.SellerLogin)
-	admin.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).PUT("/update", h.SellerUpdate)
+	seller := h.http.Group(v1.BasePath() + "/seller")
+	seller.POST("/signup", h.SellerRegister)
+	seller.GET("/login", h.SellerLogin)
+	seller.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).PUT("/update", h.SellerUpdate)
 
-	//Product for admin
-	product_admin := h.http.Group(v1.BasePath() + "/admin/market")
-	product_admin.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).
+	//Product for seller
+	product_seller := h.http.Group(v1.BasePath() + "/seller/market")
+	product_seller.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).
 		POST("/product/upload", h.PostProduct).
 		PUT("/product/:product_id", h.UpdateProduct).
-		GET("/product", h.GetAllProduct).
-		GET("/product/:product_id", h.GetProductByID).
+		GET("/product", h.GetSellerProduct).
+		GET("/product/:product_id", h.GetSellerProductByID).
 		DELETE("/product/:product_id", h.DeleteProductByID)
 
 	//Product for user

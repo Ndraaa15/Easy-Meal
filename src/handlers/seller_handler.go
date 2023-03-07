@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	supabasestorageuploader "github.com/adityarizkyramadhan/supabase-storage-uploader"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -30,6 +31,8 @@ func (h *handler) SellerRegister(c *gin.Context) {
 		Shop:     newSeller.Shop,
 		Email:    newSeller.Email,
 		Password: string(hashPassword),
+		Address:  newSeller.Address,
+		Contact:  newSeller.Contact,
 	}
 
 	if err := h.Repository.CreateSeller(&seller); err != nil {
@@ -85,17 +88,30 @@ func (h *handler) SellerLogin(c *gin.Context) {
 func (h *handler) SellerUpdate(c *gin.Context) {
 	sellerClaims, _ := c.Get("seller")
 	seller := sellerClaims.(model.SellerClaims)
-	updateAdmin := model.SellerUpdate{}
 
-	if err := c.ShouldBindJSON(&updateAdmin); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
-		return
-	}
 	shop := c.PostForm("shop")
 	email := c.PostForm("email")
 	password := c.PostForm("password")
 	address := c.PostForm("address")
 	contact := c.PostForm("contact")
+
+	supClient := supabasestorageuploader.NewSupabaseClient(
+		"https://arcudskzafkijqukfool.supabase.co",
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyY3Vkc2t6YWZraWpxdWtmb29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc2NDk3MjksImV4cCI6MTk5MzIyNTcyOX0.CjOVpoFAdq3U-AeAzsuyV6IGcqx2ZnaXjneTis5qd6w",
+		"bcc-project",
+		"seller-image",
+	)
+	file, err := c.FormFile("seller_image")
+	if err != nil {
+		c.JSON(400, gin.H{"data": err.Error()})
+		return
+	}
+	link, err := supClient.Upload(file)
+	if err != nil {
+		c.JSON(500, gin.H{"data": err.Error()})
+		return
+	}
+
 	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again later!", nil)
@@ -114,7 +130,7 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 		sellerFound.Shop = shop
 	}
 	if email != "" {
-		sellerFound.Email = &email
+		sellerFound.Email = email
 	}
 	if address != "" {
 		sellerFound.Address = address
@@ -122,11 +138,13 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 	if contact != "" {
 		sellerFound.Contact = contact
 	}
+	if sellerFound.SellerImage != link {
+		sellerFound.SellerImage = link
+	}
 
 	if err := h.Repository.UpdateSeller(sellerFound); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
 		return
 	}
-
 	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &sellerFound)
 }
