@@ -20,9 +20,9 @@ func (r *Repository) SaveProduct(product *entities.Product) error {
 	return err
 }
 
-func (r *Repository) GetAllProduct() ([]entities.Product, error) {
+func (r *Repository) GetAllProduct(offset uint) ([]entities.Product, error) {
 	products := []entities.Product{}
-	err := r.db.Find(&products).Error
+	err := r.db.Limit(12).Offset(int(offset)).Find(&products).Error
 	return products, err
 }
 

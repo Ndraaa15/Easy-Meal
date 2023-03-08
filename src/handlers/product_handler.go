@@ -20,6 +20,7 @@ func (h *handler) PostProduct(c *gin.Context) {
 	price := c.PostForm("price")
 	description := c.PostForm("description")
 	stock := c.PostForm("stock")
+	category := c.PostForm("category")
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
 		"https://arcudskzafkijqukfool.supabase.co",
@@ -48,6 +49,7 @@ func (h *handler) PostProduct(c *gin.Context) {
 		Stock:        uint(stockConv),
 		SellerID:     seller.ID,
 		ProductImage: link,
+		Category:     category,
 	}
 
 	if err := h.Repository.CreateProduct(&product); err != nil {
@@ -70,6 +72,7 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 	price := c.PostForm("price")
 	description := c.PostForm("description")
 	stock := c.PostForm("stock")
+	category := c.PostForm("category")
 
 	priceConv, _ := strconv.ParseFloat(price, 64)
 	stockConv, _ := strconv.ParseUint(stock, 10, 64)
@@ -112,6 +115,9 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 	if productFound.ProductImage != link {
 		productFound.ProductImage = link
 	}
+	if category != "" {
+		productFound.Category = category
+	}
 
 	if err := h.Repository.SaveProduct(productFound); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed update product", nil)
@@ -134,7 +140,12 @@ func (h *handler) GetSellerProduct(c *gin.Context) {
 }
 
 func (h *handler) GetAllProduct(c *gin.Context) {
-	products, err := h.Repository.GetAllProduct()
+	pageStr := c.Param("page")
+	page, _ := strconv.Atoi(pageStr)
+
+	offset := (page - 1) * 12
+
+	products, err := h.Repository.GetAllProduct(uint(offset))
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Product not found. Please try again later!", nil)
 		return

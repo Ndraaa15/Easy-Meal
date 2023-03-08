@@ -7,7 +7,7 @@ type Cart struct {
 	ID           uint          `json:"ID" gorm:"primaryKey" binding:"required"`
 	UserID       uint          `json:"user_id"`
 	User         User          `json:"user" gorm:"foreignKey:UserID"`
-	Products     []Product     `gorm:"many2many:cart_products"`
+	Products     []Product     `json:"product" gorm:"many2many:cart_products"`
 	CartProducts []CartProduct `json:"cart_product"`
 }
 type CartProduct struct {

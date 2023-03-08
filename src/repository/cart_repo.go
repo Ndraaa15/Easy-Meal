@@ -18,19 +18,25 @@ func (r *Repository) FindCartByUserID(userID uint, cart *entities.Cart) error {
 	// return r.db.Preload("Products").Where("user_id = ?", userID).First(&cart).Error
 }
 
+func (r *Repository) GetProductCart(userID uint) (*entities.Cart, error) {
+	cart := entities.Cart{}
+	err := r.db.Preload("Products").Where("user_id = ?", userID).First(&cart).Error
+	return &cart, err
+}
+
 func (r *Repository) GetCart(userID uint) (*entities.Cart, error) {
 	cart := entities.Cart{}
 	err := r.db.Where("user_id = ?", userID).First(&cart).Error
 	return &cart, err
-
 }
 
-func (r *Repository) DeleteCartProduct(cart *entities.Cart, productID uint) error {
-	err := r.db.Delete(cart, productID).Error
+func (r *Repository) DeleteCartProduct(cartID uint, productID uint) error {
+	cartProduct := entities.CartProduct{}
+	err := r.db.Where("cart_id = ?", cartID).Where("product_id = ?", productID).Delete(&cartProduct).Error
 	return err
 }
 
 func (r *Repository) AddProductToCart(cart *entities.Cart, cartProduct *entities.CartProduct) error {
-	err := r.db.Model(cart).Association("CartProducts").Append(cartProduct)
+	err := r.db.Model(cart).Association("Products").Append(cartProduct)
 	return err
 }

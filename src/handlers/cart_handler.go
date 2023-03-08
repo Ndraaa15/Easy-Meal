@@ -40,6 +40,7 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		helper.ErrorResponse(c, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
+
 	cartProduct := entities.CartProduct{
 		ProductID: uint(productID),
 		Quantity:  newItem.Quantity,
@@ -70,7 +71,7 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
 
-	cartFound, err := h.Repository.GetCart(user.ID)
+	cartFound, err := h.Repository.GetProductCart(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadGateway, "Can't find the cart", nil)
 	}
@@ -82,7 +83,7 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 		return
 	}
 
-	if err := h.Repository.DeleteCartProduct(cartFound, uint(productID)); err != nil {
+	if err := h.Repository.DeleteCartProduct(cartFound.ID, uint(productID)); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to remove product from cart", nil)
 		return
 	}
@@ -93,12 +94,9 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 func (h *handler) GetCart(c *gin.Context) {
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
-	cartFound := entities.Cart{}
-	if err := h.Repository.FindCartByUserID(user.ID, &cartFound); err != nil {
+	cartFound, err := h.Repository.GetProductCart(user.ID)
+	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadGateway, "Can't find the cart", nil)
-		return
 	}
-
-	helper.SuccessResponse(c, http.StatusOK, "Cart found!", &cartFound)
-
+	helper.SuccessResponse(c, http.StatusOK, "Product find!!!", cartFound)
 }
