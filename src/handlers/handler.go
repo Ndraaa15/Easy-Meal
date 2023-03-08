@@ -67,7 +67,7 @@ func (h *handler) registerRoutes() {
 		GET("/product/:product_id", h.GetProductByID).
 		POST("/cart", h.AddProductToCart).
 		DELETE("/cart", h.RemoveProductFromCart).
-		GET("/cart", h.GetCart).
+		GET("/cart", h.GetProductCart).
 		GET("/products/filter/:category", h.GetProductByFilter).
 		GET("/products", h.SearchProduct)
 }

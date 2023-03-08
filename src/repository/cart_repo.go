@@ -9,7 +9,7 @@ func (r *Repository) SaveCart(product *entities.Cart) error {
 	return err
 }
 
-func (r *Repository) FindCartByUserID(userID uint, cart *entities.Cart) error {
+func (r *Repository) GetOrCreateCart(userID uint, cart *entities.Cart) error {
 	//Fungsi GORM di bawah untuk mencari cart sekaligus membuat cart apabila tidak ditemukan.
 	err := r.db.Debug().FirstOrCreate(&cart, entities.Cart{UserID: userID}).Error
 	return err
@@ -20,13 +20,13 @@ func (r *Repository) FindCartByUserID(userID uint, cart *entities.Cart) error {
 
 func (r *Repository) GetProductCart(userID uint) (*entities.Cart, error) {
 	cart := entities.Cart{}
-	err := r.db.Preload("Products").Where("user_id = ?", userID).First(&cart).Error
+	err := r.db.Preload("User").Preload("CartProducts").Where("user_id = ?", userID).First(&cart).Error
 	return &cart, err
 }
 
 func (r *Repository) GetCart(userID uint) (*entities.Cart, error) {
 	cart := entities.Cart{}
-	err := r.db.Where("user_id = ?", userID).First(&cart).Error
+	err := r.db.Preload("User").Preload("Cart").Where("user_id = ?", userID).First(&cart).Error
 	return &cart, err
 }
 
