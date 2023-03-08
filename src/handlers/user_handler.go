@@ -32,9 +32,9 @@ func (h *handler) UserRegister(c *gin.Context) {
 		Email:    newUser.Email,
 		Username: newUser.Username,
 		Password: string(hashPassword),
-		Address:  newUser.Address,
-		Contact:  newUser.Contact,
-		Gender:   newUser.Gender,
+		// Address:  newUser.Address,
+		Contact: newUser.Contact,
+		// Gender:   newUser.Gender,
 	}
 
 	if err = h.Repository.CreateUser(&user); err != nil {

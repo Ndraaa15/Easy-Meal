@@ -43,3 +43,15 @@ func (r *Repository) GetSellerProductByID(SellerID uint, ProductID uint) (entiti
 	err := r.db.Where("seller_id = ?", SellerID).Where("ID = ?", ProductID).Find(&products).Error
 	return products, err
 }
+
+func (r *Repository) SearchProduct(keyword string) ([]entities.Product, error) {
+	product := []entities.Product{}
+	err := r.db.Preload("Category").Where("name like ?", "%"+keyword+"%").Find(&product).Error
+	return product, err
+}
+
+func (r *Repository) FilteredProduct(categoryID uint) ([]entities.Product, error) {
+	products := []entities.Product{}
+	err := r.db.Preload("Category").Where("category_id = ?", categoryID).Find(&products).Error
+	return products, err
+}

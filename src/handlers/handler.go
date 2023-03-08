@@ -31,6 +31,8 @@ func Init(config config.Initializer, repo *repository.Repository) *handler {
 
 func (h *handler) registerRoutes() {
 	repository.NewRepository(h.db)
+	h.Repository.SeedCategory()
+
 	h.http.GET("/", func(ctx *gin.Context) {
 		helper.SuccessResponse(ctx, http.StatusOK, "Hello World", nil)
 	})
@@ -65,7 +67,9 @@ func (h *handler) registerRoutes() {
 		GET("/product/:product_id", h.GetProductByID).
 		POST("/cart", h.AddProductToCart).
 		DELETE("/cart", h.RemoveProductFromCart).
-		GET("/cart", h.GetCart)
+		GET("/cart", h.GetCart).
+		GET("/products/filter/:category", h.GetProductByFilter).
+		GET("/products", h.SearchProduct)
 }
 
 func (h *handler) Run() {

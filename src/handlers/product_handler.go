@@ -4,6 +4,7 @@ import (
 	"bcc-project-v/src/entities"
 	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
+	"log"
 	"strconv"
 
 	"net/http"
@@ -41,7 +42,14 @@ func (h *handler) PostProduct(c *gin.Context) {
 
 	priceConv, _ := strconv.ParseFloat(price, 64)
 	stockConv, _ := strconv.ParseUint(stock, 10, 64)
+	categoryConv, _ := strconv.ParseUint(category, 10, 64)
 
+	categoryProduct := entities.Category{}
+	if err := h.Repository.FindCategory(&categoryProduct, uint(categoryConv)); err != nil {
+		helper.ErrorResponse(c, http.StatusBadGateway, err.Error(), nil)
+		return
+	}
+	log.Println(categoryProduct)
 	product := entities.Product{
 		Name:         name,
 		Price:        priceConv,
@@ -49,14 +57,14 @@ func (h *handler) PostProduct(c *gin.Context) {
 		Stock:        uint(stockConv),
 		SellerID:     seller.ID,
 		ProductImage: link,
-		Category:     category,
+		CategoryID:   uint(categoryConv),
+		Category:     categoryProduct,
 	}
 
 	if err := h.Repository.CreateProduct(&product); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't make the product", nil)
 		return
 	}
-
 	helper.SuccessResponse(c, http.StatusOK, "Create product Successful", &product)
 }
 
@@ -72,7 +80,7 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 	price := c.PostForm("price")
 	description := c.PostForm("description")
 	stock := c.PostForm("stock")
-	category := c.PostForm("category")
+	// category := c.PostForm("category")
 
 	priceConv, _ := strconv.ParseFloat(price, 64)
 	stockConv, _ := strconv.ParseUint(stock, 10, 64)
@@ -115,9 +123,9 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 	if productFound.ProductImage != link {
 		productFound.ProductImage = link
 	}
-	if category != "" {
-		productFound.Category = category
-	}
+	// if category != "" {
+	// 	productFound.Category = category
+	// }
 
 	if err := h.Repository.SaveProduct(productFound); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed update product", nil)
@@ -136,7 +144,6 @@ func (h *handler) GetSellerProduct(c *gin.Context) {
 		return
 	}
 	helper.SuccessResponse(c, http.StatusOK, "Product Find!!!", products)
-
 }
 
 func (h *handler) GetAllProduct(c *gin.Context) {
@@ -197,4 +204,26 @@ func (h *handler) DeleteProductByID(c *gin.Context) {
 		return
 	}
 	helper.SuccessResponse(c, http.StatusOK, "Product with name "+product.Name+" succesful deleted", nil)
+}
+
+func (h *handler) GetProductByFilter(c *gin.Context) {
+	categoryIDStr := c.Param("category")
+	categoryIDConv, _ := strconv.Atoi(categoryIDStr)
+	products, err := h.Repository.FilteredProduct(uint(categoryIDConv))
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to filter", nil)
+		return
+	}
+	helper.SuccessResponse(c, http.StatusOK, "Product filter found", products)
+
+}
+
+func (h *handler) SearchProduct(c *gin.Context) {
+	search := c.Query("search")
+	product, err := h.Repository.SearchProduct(search)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Cant find the product!!!", nil)
+		return
+	}
+	helper.SuccessResponse(c, http.StatusOK, "Product found", &product)
 }
