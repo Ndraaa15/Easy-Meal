@@ -70,6 +70,11 @@ func (h *handler) registerRoutes() {
 		GET("/cart", h.GetProductCart).
 		GET("/products/filter/:category", h.GetProductByFilter).
 		GET("/products", h.SearchProduct)
+
+	//("user/payment/offline")
+	//("user/payment/offline")
+
+	//("user/history")
 }
 
 func (h *handler) Run() {

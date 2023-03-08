@@ -6,6 +6,7 @@ require github.com/golang-jwt/jwt/v5 v5.0.0-rc.1
 
 require (
 	github.com/adityarizkyramadhan/supabase-storage-uploader v0.0.3 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/midtrans/midtrans-go v1.3.6 // indirect
 )
 
@@ -42,6 +43,6 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect
-	gorm.io/gorm v1.24.5 // 
+	gorm.io/gorm v1.24.5 //
 
 )
