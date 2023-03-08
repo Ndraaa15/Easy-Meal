@@ -28,6 +28,8 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		return
 	}
 
+	product, _ := h.Repository.GetProductByID(uint(productID))
+
 	// find existing cart
 	cart := entities.Cart{}
 	if err := h.Repository.GetOrCreateCart(user.ID, &cart); err != nil {
@@ -35,21 +37,16 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		return
 	}
 
-	// cartFound, err := h.Repository.GetCart(user.ID)
-	// if err != nil {
-	// 	helper.ErrorResponse(c, http.StatusBadRequest, err.Error(), nil)
-	// 	return
-	// }
-
 	cartProduct := entities.CartProduct{
 		ProductID: uint(productID),
 		Quantity:  newItem.Quantity,
 	}
-
+	newProductPrice := product.Price * float64(cartProduct.Quantity)
 	found := false
-	for i, p := range cart.CartProducts {
+	for _, p := range cart.CartProducts {
 		if p.ProductID == uint(productID) {
-			cart.CartProducts[i].Quantity += cartProduct.Quantity
+			p.Quantity += cartProduct.Quantity
+			p.ProductPrice += newProductPrice
 			found = true
 			break
 		}
@@ -59,7 +56,8 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		cart.CartProducts = append(cart.CartProducts, cartProduct)
 	}
 
-	cart.CartProducts = append(cart.CartProducts, cartProduct)
+	cart.TotalPrice += newProductPrice
+
 	if err := h.Repository.SaveCart(&cart); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save into cart", nil)
 		return

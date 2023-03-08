@@ -4,7 +4,10 @@ go 1.20
 
 require github.com/golang-jwt/jwt/v5 v5.0.0-rc.1
 
-require github.com/adityarizkyramadhan/supabase-storage-uploader v0.0.3 // indirect
+require (
+	github.com/adityarizkyramadhan/supabase-storage-uploader v0.0.3 // indirect
+	github.com/midtrans/midtrans-go v1.3.6 // indirect
+)
 
 require (
 	github.com/bytedance/sonic v1.8.0 // indirect
@@ -39,5 +42,6 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect
-	gorm.io/gorm v1.24.5 // indirect
+	gorm.io/gorm v1.24.5 // 
+
 )
