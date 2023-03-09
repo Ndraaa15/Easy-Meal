@@ -18,7 +18,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	//GetCart
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
-	cartUser, _ := h.Repository.GetCart(user.ID)
+	// cartUser, _ := h.Repository.GetCart(user.ID)
 	// if err != nil {
 	// 	helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get cart", nil)
 	// 	return
@@ -44,10 +44,9 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 			Secure: true,
 		},
 		CustomerDetail: &midtrans.CustomerDetails{
-			FName:      userPayment.FName,
-			Email:      userPayment.Email,
-			Phone:      userPayment.Contact,
-			TotalPrice: cartUser.TotalPrice,
+			FName: userPayment.FName,
+			Email: userPayment.Email,
+			Phone: userPayment.Contact,
 		},
 	}
 
