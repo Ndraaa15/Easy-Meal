@@ -18,7 +18,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	//GetCart
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
-	// cartUser, _ := h.Repository.GetCart(user.ID)
+	cartUser, _ := h.Repository.GetCart(user.ID)
 	// if err != nil {
 	// 	helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get cart", nil)
 	// 	return
@@ -38,7 +38,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	snapReq := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID:  "MID-GO-ID-" + time.Now().UTC().Format("2006010215040105"),
-			GrossAmt: 200000,
+			GrossAmt: int64(cartUser.TotalPrice),
 		},
 		CreditCard: &snap.CreditCardDetails{
 			Secure: true,
