@@ -1,4 +1,4 @@
-name: Build and Deploy Goo BCC
+name: Build and Deploy Go BCC
 on:
   workflow_dispatch:
   push:
