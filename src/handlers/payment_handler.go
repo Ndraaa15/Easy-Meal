@@ -14,10 +14,25 @@ import (
 	"github.com/midtrans/midtrans-go/snap"
 )
 
-func (h *handler) OnlinePayment() {
+func (h *handler) OnlinePayment(c *gin.Context) {
+	//GetCart
+	userClaims, _ := c.Get("user")
+	user := userClaims.(model.UserClaims)
+	cartUser, _ := h.Repository.GetCart(user.ID)
+	// if err != nil {
+	// 	helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get cart", nil)
+	// 	return
+	// }
+
+	userPayment, err := h.Repository.FindUserByID(user.ID)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get user", nil)
+		return
+	}
+
 	// 1. Initiate Snap client
 	var s = snap.Client{}
-	s.New("YOUR-SERVER-KEY", midtrans.Sandbox)
+	s.New("SB-Mid-server-LUvH6eRemVIRmJnXiq5kHeJ6", midtrans.Sandbox)
 
 	// 2. Initiate Snap request
 	snapReq := &snap.Request{
@@ -29,35 +44,28 @@ func (h *handler) OnlinePayment() {
 			Secure: true,
 		},
 		CustomerDetail: &midtrans.CustomerDetails{
-			FName: "John",
-			LName: "Doe",
-			Email: "john@doe.com",
-			Phone: "081234567890",
-		},
-		Items: &[]midtrans.ItemDetails{
-			{
-				ID:    "ITEM1",
-				Price: 200000,
-				Qty:   1,
-				Name:  "Someitem",
-			},
+			FName:      userPayment.FName,
+			Email:      userPayment.Email,
+			Phone:      userPayment.Contact,
+			TotalPrice: cartUser.TotalPrice,
 		},
 	}
 
 	// 3. Request create Snap transaction to Midtrans
 	snapResp, _ := s.CreateTransaction(snapReq)
 	fmt.Println("Response :", snapResp)
+	helper.SuccessResponse(c, http.StatusOK, "Payment succesful", &snapResp)
 }
 
 func (h *handler) OfflinePayment(c *gin.Context) {
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
-	cart, err := h.Repository.GetCart(user.ID)
-	if err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Faied get cart", nil)
-		return
-	}
-
+	cart, _ := h.Repository.GetCart(user.ID)
+	// if err != nil {
+	// 	helper.ErrorResponse(c, http.StatusBadRequest, "Failed get cart", nil)
+	// }
+	fmt.Println(user.ID)
+	fmt.Println(cart)
 	// Membuat UUID secara acak
 	id := uuid.New()
 
@@ -68,6 +76,7 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	payment.TotalPrice = cart.TotalPrice
 	payment.PaymentCode = uniqueCode
 	payment.UserID = user.ID
+	payment.CartID = cart.ID
 
 	if err := h.Repository.CreatePayment(&payment); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed order", nil)

@@ -31,7 +31,7 @@ func main() {
 	fmt.Println("Database connected successfully!")
 
 	db.Debug().AutoMigrate(&entities.User{}, &entities.Seller{}, &entities.Product{}, &entities.Cart{},
-		&entities.CartProduct{}, &entities.Category{})
+		&entities.CartProduct{}, &entities.Category{}, &entities.OfflinePayment{})
 
 	handler := handlers.Init(conf, repository.NewRepository(db))
 	handler.Run()

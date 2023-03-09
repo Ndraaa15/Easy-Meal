@@ -69,10 +69,10 @@ func (h *handler) registerRoutes() {
 		DELETE("/cart", h.RemoveProductFromCart).
 		GET("/cart", h.GetProductCart).
 		GET("/products/filter/:category", h.GetProductByFilter).
-		GET("/products", h.SearchProduct)
-
-	//("user/payment/offline")
-	//("user/payment/offline")
+		GET("/products", h.SearchProduct).
+		POST("/payment/offline", h.OfflinePayment).
+		POST("/payment/online", h.OnlinePayment)
+	//	https://app.sandbox.midtrans.com/snap/v1/transactions
 
 	//("user/history")
 }
