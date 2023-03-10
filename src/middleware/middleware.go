@@ -96,8 +96,7 @@ func Cors() gin.HandlerFunc {
 			AllowedOrigins:   []string{"http://localhost:3000"},
 			AllowCredentials: true,
 			AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut},
-			// Enable Debugging for testing, consider disabling in production
-			Debug: true,
+			Debug:            true,
 		})
 		c.HandlerFunc(ctx.Writer, ctx.Request)
 		ctx.Next()
