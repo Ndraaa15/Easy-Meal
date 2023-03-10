@@ -38,7 +38,7 @@ func (h *handler) registerRoutes() {
 		helper.SuccessResponse(ctx, http.StatusOK, "Hello World", nil)
 	})
 
-	h.http.Use(middleware.Cors())
+	// h.http.Use(middleware.Cors())
 	v1 := h.http.Group("/api/v1")
 
 	//User

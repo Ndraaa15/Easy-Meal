@@ -35,7 +35,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	s.New(os.Getenv("SERVER_MIDTRANS_KEY"), midtrans.Sandbox)
 
 	// 2. Initiate Snap request
-	snapReq := &snap.Request{
+	req := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID:  "MID-PAY-EM-" + time.Now().UTC().Format("2006010215040105"),
 			GrossAmt: int64(cart.TotalPrice),
@@ -44,14 +44,14 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 			Secure: true,
 		},
 		CustomerDetail: &midtrans.CustomerDetails{
-			FName: userPayment.FName,
+			FName: userPayment.Username,
 			Email: userPayment.Email,
 			Phone: userPayment.Contact,
 		},
 	}
 
 	// 3. Request create Snap transaction to Midtrans
-	snapResp, _ := s.CreateTransaction(snapReq)
+	snapResp, _ := s.CreateTransaction(req)
 
 	//create payment for database
 	status := entities.Status{}
