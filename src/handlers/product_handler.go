@@ -4,7 +4,6 @@ import (
 	"bcc-project-v/src/entities"
 	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
-	"log"
 	"strconv"
 
 	"net/http"
@@ -49,7 +48,6 @@ func (h *handler) PostProduct(c *gin.Context) {
 		helper.ErrorResponse(c, http.StatusBadGateway, err.Error(), nil)
 		return
 	}
-	log.Println(categoryProduct)
 	product := entities.Product{
 		Name:         name,
 		Price:        priceConv,
@@ -157,7 +155,7 @@ func (h *handler) GetAllProduct(c *gin.Context) {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Product not found. Please try again later!", nil)
 		return
 	}
-	helper.SuccessResponse(c, http.StatusOK, "Product found", products)
+	helper.SuccessResponse(c, http.StatusOK, "Product found", &products)
 }
 
 func (h *handler) GetProductByID(c *gin.Context) {

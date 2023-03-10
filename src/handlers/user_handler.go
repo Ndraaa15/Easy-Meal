@@ -94,7 +94,6 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	email := c.PostForm("email")
 	username := c.PostForm("username")
 	gender := c.PostForm("gender")
-	password := c.PostForm("password")
 	address := c.PostForm("address")
 	contact := c.PostForm("contact")
 
@@ -121,14 +120,6 @@ func (h *handler) UserUpdate(c *gin.Context) {
 		return
 	}
 
-	if password != "" {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-		if err != nil {
-			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", nil)
-			return
-		}
-		userFound.Password = string(hashPassword)
-	}
 	if fname != "" {
 		userFound.FName = fname
 	}
@@ -157,4 +148,39 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	}
 
 	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &userFound)
+}
+
+func (h *handler) UserUpdatePassword(c *gin.Context) {
+	userClaims, _ := c.Get("user")
+	user := userClaims.(model.UserClaims)
+
+	userFound, err := h.Repository.FindUserByID(user.ID)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "User not found. Please try again later!", nil)
+		return
+	}
+
+	oldPassword := c.PostForm("old_password")
+	newPassword := c.PostForm("new_password")
+
+	if err = bcrypt.CompareHashAndPassword([]byte(userFound.Password), []byte(oldPassword)); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", nil)
+		return
+	}
+
+	if newPassword != "" {
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", nil)
+			return
+		}
+		userFound.Password = string(hashPassword)
+	}
+
+	if err := h.Repository.UpdateUser(userFound); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
+		return
+	}
+
+	helper.SuccessResponse(c, http.StatusOK, "Update Password Successful", &userFound)
 }

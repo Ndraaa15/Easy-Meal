@@ -32,24 +32,30 @@ func Init(config config.Initializer, repo *repository.Repository) *handler {
 func (h *handler) registerRoutes() {
 	repository.NewRepository(h.db)
 	h.Repository.SeedCategory()
+	h.Repository.SeedStatus()
 
 	h.http.GET("/", func(ctx *gin.Context) {
 		helper.SuccessResponse(ctx, http.StatusOK, "Hello World", nil)
 	})
 
+	h.http.Use(middleware.Cors())
 	v1 := h.http.Group("/api/v1")
 
 	//User
 	user := h.http.Group(v1.BasePath() + "/user")
 	user.POST("/signup", h.UserRegister)
 	user.GET("/login", h.UserLogin)
-	user.Use(middleware.NewRepository(h.db).IsUserLoggedIn()).PUT("/update", h.UserUpdate)
+	user.Use(middleware.NewRepository(h.db).IsUserLoggedIn()).
+		PUT("/update", h.UserUpdate).
+		PUT("/update/password", h.UserUpdatePassword)
 
 	//Admin
 	seller := h.http.Group(v1.BasePath() + "/seller")
 	seller.POST("/signup", h.SellerRegister)
 	seller.GET("/login", h.SellerLogin)
-	seller.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).PUT("/update", h.SellerUpdate)
+	seller.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).
+		PUT("/update", h.SellerUpdate).
+		PUT("/update/password", h.SellerUpdatePassword)
 
 	//Product for seller
 	product_seller := h.http.Group(v1.BasePath() + "/seller/market")
@@ -71,10 +77,8 @@ func (h *handler) registerRoutes() {
 		GET("/products/filter/:category", h.GetProductByFilter).
 		GET("/products", h.SearchProduct).
 		POST("/payment/offline", h.OfflinePayment).
-		POST("/payment/online", h.OnlinePayment)
-	//	https://app.sandbox.midtrans.com/snap/v1/transactions
-
-	//("user/history")
+		POST("/payment/online", h.OnlinePayment).
+		GET("user/history")
 }
 
 func (h *handler) Run() {

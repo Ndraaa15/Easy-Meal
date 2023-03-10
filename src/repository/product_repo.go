@@ -22,7 +22,7 @@ func (r *Repository) SaveProduct(product *entities.Product) error {
 
 func (r *Repository) GetAllProduct(offset uint) ([]entities.Product, error) {
 	products := []entities.Product{}
-	err := r.db.Limit(12).Offset(int(offset)).Find(&products).Error
+	err := r.db.Preload("Category").Limit(12).Offset(int(offset)).Find(&products).Error
 	return products, err
 }
 
@@ -34,13 +34,13 @@ func (r *Repository) DeleteProductByID(SellerID, ID uint) (*entities.Product, er
 
 func (r *Repository) GetSellerProduct(SellerID uint) ([]entities.Product, error) {
 	products := []entities.Product{}
-	err := r.db.Where("seller_id = ?", SellerID).Find(&products).Error
+	err := r.db.Preload("Category").Where("seller_id = ?", SellerID).Find(&products).Error
 	return products, err
 }
 
 func (r *Repository) GetSellerProductByID(SellerID uint, ProductID uint) (entities.Product, error) {
 	products := entities.Product{}
-	err := r.db.Where("seller_id = ?", SellerID).Where("ID = ?", ProductID).Find(&products).Error
+	err := r.db.Preload("Category").Where("seller_id = ?", SellerID).Where("ID = ?", ProductID).Find(&products).Error
 	return products, err
 }
 

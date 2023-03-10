@@ -9,6 +9,8 @@ require (
 	github.com/midtrans/midtrans-go v1.3.6
 )
 
+require github.com/rs/cors v1.8.3 // indirect
+
 require (
 	github.com/bytedance/sonic v1.8.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect

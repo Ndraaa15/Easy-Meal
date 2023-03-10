@@ -1,12 +1,12 @@
 package entities
 
 var (
-	Process = "Sedang Diproses"
-	Paid    = "Sudah Dibayar"
-	Done    = "Sudah Diambil"
+	Process = "Berlangsung"
+	Done    = "Berhasil"
+	Failed  = "Tidak Berhasil"
 )
 
 type Status struct {
-	ID   uint
-	Name string `gorm:"type:VARCHAR(30)"`
+	ID     uint
+	Status string `gorm:"type:VARCHAR(30)"`
 }

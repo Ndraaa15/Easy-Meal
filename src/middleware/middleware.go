@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
 
@@ -86,5 +87,19 @@ func (r *Repository) IsUserLoggedIn() gin.HandlerFunc {
 
 		c.Set("user", user)
 		c.Next()
+	}
+}
+
+func Cors() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		c := cors.New(cors.Options{
+			AllowedOrigins:   []string{"http://localhost:3000"},
+			AllowCredentials: true,
+			AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut},
+			// Enable Debugging for testing, consider disabling in production
+			Debug: true,
+		})
+		c.HandlerFunc(ctx.Writer, ctx.Request)
+		ctx.Next()
 	}
 }

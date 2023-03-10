@@ -31,3 +31,32 @@ func (r *Repository) FindCategory(categoryProduct *entities.Category, CategoryID
 	err := r.db.Find(&categoryProduct, CategoryID).Error
 	return err
 }
+
+func (r *Repository) SeedStatus() error {
+	var status []entities.Status
+
+	if err := r.db.First(&status).Error; err != gorm.ErrRecordNotFound {
+		return err
+	}
+	status = []entities.Status{
+		{
+			Status: entities.Process,
+		},
+		{
+			Status: entities.Done,
+		},
+		{
+			Status: entities.Failed,
+		},
+	}
+
+	if err := r.db.Create(&status).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) FindStatus(statusPayment *entities.Status, StatusID uint) error {
+	err := r.db.Find(&statusPayment, StatusID).Error
+	return err
+}

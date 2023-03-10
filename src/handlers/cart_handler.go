@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	// "gorm.io/gorm"
 )
 
 func (h *handler) AddProductToCart(c *gin.Context) {
@@ -37,26 +36,34 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		return
 	}
 
-	cartProduct := entities.CartProduct{
-		ProductID: uint(productID),
-		Quantity:  newItem.Quantity,
+	newCartProduct := entities.CartProduct{
+		ProductID:    uint(productID),
+		Product:      *product,
+		Quantity:     newItem.Quantity,
+		ProductPrice: product.Price * float64(newItem.Quantity),
 	}
-	newProductPrice := product.Price * float64(cartProduct.Quantity)
+
 	found := false
-	for _, p := range cart.CartProducts {
+	for i, p := range cart.CartProducts {
 		if p.ProductID == uint(productID) {
-			p.Quantity += cartProduct.Quantity
-			p.ProductPrice += newProductPrice
+			cart.CartProducts[i] = newCartProduct
+			// if err := h.Repository.ReplaceCartProduct(&cart, newCartProduct); err != nil {
+			// 	return
+			// }
 			found = true
 			break
 		}
 	}
 
 	if !found {
-		cart.CartProducts = append(cart.CartProducts, cartProduct)
+		cart.CartProducts = append(cart.CartProducts, newCartProduct)
 	}
 
-	cart.TotalPrice += newProductPrice
+	var newTotalPrice float64
+	for _, p := range cart.CartProducts {
+		newTotalPrice += p.ProductPrice
+	}
+	cart.TotalPrice = float64(newTotalPrice)
 
 	if err := h.Repository.SaveCart(&cart); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save into cart", nil)
@@ -78,6 +85,18 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 	productID, err := strconv.ParseUint(productIDStr, 10, 64)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to parse string into uint64", nil)
+		return
+	}
+
+	product, err := h.Repository.FindProduct(cartFound.ID, uint(productID))
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to find the product", nil)
+	}
+
+	cartFound.TotalPrice -= product.ProductPrice
+
+	if err := h.Repository.SaveCart(cartFound); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save into cart", nil)
 		return
 	}
 

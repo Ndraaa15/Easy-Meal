@@ -91,7 +91,6 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 
 	shop := c.PostForm("shop")
 	email := c.PostForm("email")
-	password := c.PostForm("password")
 	address := c.PostForm("address")
 	contact := c.PostForm("contact")
 
@@ -118,14 +117,6 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 		return
 	}
 
-	if password != "" {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-		if err != nil {
-			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", nil)
-			return
-		}
-		sellerFound.Password = string(hashPassword)
-	}
 	if shop != "" {
 		sellerFound.Shop = shop
 	}
@@ -147,4 +138,38 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 		return
 	}
 	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &sellerFound)
+}
+
+func (h *handler) SellerUpdatePassword(c *gin.Context) {
+	sellerClaims, _ := c.Get("seller")
+	seller := sellerClaims.(model.SellerClaims)
+
+	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again later!", nil)
+		return
+	}
+
+	oldPassword := c.PostForm("old_password")
+	newPassword := c.PostForm("new_password")
+
+	if err = bcrypt.CompareHashAndPassword([]byte(sellerFound.Password), []byte(oldPassword)); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", nil)
+		return
+	}
+
+	if newPassword != "" {
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", nil)
+			return
+		}
+		sellerFound.Password = string(hashPassword)
+	}
+
+	if err := h.Repository.UpdateSeller(sellerFound); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
+		return
+	}
+	helper.SuccessResponse(c, http.StatusOK, "Update Password Successful", &sellerFound)
 }
