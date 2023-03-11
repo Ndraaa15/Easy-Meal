@@ -16,14 +16,13 @@ import (
 func (h *handler) SellerRegister(c *gin.Context) {
 	newSeller := model.SellerRegister{}
 	if err := c.ShouldBindJSON(&newSeller); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", err.Error())
 		return
 	}
 
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(newSeller.Password), 12)
-
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Password format is incorrect. Please follow the specified format and try again!", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Password format is incorrect. Please follow the specified format and try again!", err.Error())
 		return
 	}
 
@@ -34,9 +33,8 @@ func (h *handler) SellerRegister(c *gin.Context) {
 		Address:  newSeller.Address,
 		Contact:  newSeller.Contact,
 	}
-
 	if err := h.Repository.CreateSeller(&seller); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Can't create new seller", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed add seller to database. Please try again later or contact customer service for help", err.Error())
 		return
 	}
 
@@ -46,43 +44,36 @@ func (h *handler) SellerRegister(c *gin.Context) {
 func (h *handler) SellerLogin(c *gin.Context) {
 	sellerLogin := model.SellerLogin{}
 	if err := c.ShouldBindJSON(&sellerLogin); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", err.Error())
 		return
 	}
 
 	sellerFound, err := h.Repository.FindSellerByEmail(&sellerLogin)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again with a valid email!", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Seller not found. Please try again with a valid email!", err.Error())
 		return
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(sellerFound.Password), []byte(sellerLogin.Password)); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", err.Error())
 		return
 	}
 
-	//JWT TOKEN
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":   sellerFound.Shop,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
-		"shop":  sellerFound.Shop,
-		"email": sellerFound.Email,
 		"id":    sellerFound.ID,
+		"email": sellerFound.Email,
 	})
 
-	//GET JWT TOKEN
 	tokenString, err := token.SignedString([]byte(h.config.GetEnv("SECRET_KEY")))
 
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create token JWT. Please try again to login!", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create token JWT. Please try again to login!", err.Error())
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+sellerFound.Shop+"!", nil)
-	c.JSON(http.StatusOK, gin.H{
-		"JWT Token": tokenString,
-	})
-
+	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+sellerFound.Shop+" ! ", tokenString)
 }
 
 func (h *handler) SellerUpdate(c *gin.Context) {
@@ -102,18 +93,18 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 	)
 	file, err := c.FormFile("seller_image")
 	if err != nil {
-		c.JSON(400, gin.H{"data": err.Error()})
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get seller image", err.Error())
 		return
 	}
 	link, err := supClient.Upload(file)
 	if err != nil {
-		c.JSON(500, gin.H{"data": err.Error()})
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to upload seller image", err.Error())
 		return
 	}
 
 	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again later!", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Seller not found. Please try again later!", err.Error())
 		return
 	}
 
@@ -134,9 +125,10 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 	}
 
 	if err := h.Repository.UpdateSeller(sellerFound); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", err.Error())
 		return
 	}
+
 	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &sellerFound)
 }
 
@@ -146,7 +138,7 @@ func (h *handler) SellerUpdatePassword(c *gin.Context) {
 
 	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Admin not found. Please try again later!", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Seller not found. Please try again later!", err.Error())
 		return
 	}
 
@@ -154,14 +146,14 @@ func (h *handler) SellerUpdatePassword(c *gin.Context) {
 	newPassword := c.PostForm("new_password")
 
 	if err = bcrypt.CompareHashAndPassword([]byte(sellerFound.Password), []byte(oldPassword)); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", err.Error())
 		return
 	}
 
 	if newPassword != "" {
 		hashPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
 		if err != nil {
-			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", nil)
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", err.Error())
 			return
 		}
 		sellerFound.Password = string(hashPassword)
@@ -173,9 +165,3 @@ func (h *handler) SellerUpdatePassword(c *gin.Context) {
 	}
 	helper.SuccessResponse(c, http.StatusOK, "Update Password Successful", &sellerFound)
 }
-
-// func (h *handler) GiveStatus(c *gin.Context) {
-// 	sellerClaims, _ := c.Get("seller")
-// 	seller := sellerClaims.(model.SellerClaims)
-// 	//CartProducts ->
-// }

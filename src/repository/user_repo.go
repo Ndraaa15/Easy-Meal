@@ -21,7 +21,6 @@ func (r *Repository) FindUser(model *model.LoginUser) (*entities.User, error) {
 func (r *Repository) FindUserByID(ID uint) (*entities.User, error) {
 	user := entities.User{}
 	err := r.db.Debug().First(&user, ID).Error
-	// rr := r.db.Where("ID = ?", ID).First(&user).Error
 	return &user, err
 }
 

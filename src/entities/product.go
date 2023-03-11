@@ -13,6 +13,7 @@ type Product struct {
 	SellerID     uint          `json:"seller_id" binding:"required" gorm:"foreignKey:SellerID"`
 	Description  string        `json:"description" binding:"required"`
 	Stock        uint          `json:"stock" binding:"required"`
+	Mass         uint          `json:"mass" binding:"required"`
 	CategoryID   uint          `json:"category_id" binding:"required"`
 	Category     Category      `gorm:"foreignKey:CategoryID"`
 	Cart         []Cart        `json:"-" gorm:"many2many:cart_products"`
