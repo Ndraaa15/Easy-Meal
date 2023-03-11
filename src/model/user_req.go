@@ -7,19 +7,18 @@ import (
 )
 
 type RegisterUser struct {
-	FName    string `json:"fname" binding:"required" required:"true"`
-	Email    string `json:"email" binding:"required" required:"true"`
-	Username string `json:"username" binding:"required" required:"true"`
-	Gender   string `json:"gender" binding:"required" required:"true"`
-	Password string `json:"password" binding:"required" required:"true"`
-	Address  string `json:"address" binding:"required" required:"true"`
-	Contact  string `json:"contact" binding:"required" required:"true"`
+	FName    string `json:"fname" required:"true"`
+	Email    string `json:"email"  required:"true"`
+	Username string `json:"username" required:"true"`
+	Password string `json:"password" required:"true"`
+	Address  string `json:"address" required:"true"`
+	Contact  string `json:"contact" required:"true"`
 }
 
 type LoginUser struct {
 	Email    string `json:"email" required:"true"`
 	Username string `json:"username" required:"true"`
-	Password string `json:"password" binding:"required" required:"true"`
+	Password string `json:"password" binding:"required"`
 }
 
 type GetUserByID struct {

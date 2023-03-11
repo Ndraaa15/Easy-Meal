@@ -38,7 +38,6 @@ func (h *handler) registerRoutes() {
 		helper.SuccessResponse(ctx, http.StatusOK, "Hello World", nil)
 	})
 
-	// h.http.Use(middleware.Cors())
 	v1 := h.http.Group("/api/v1")
 
 	//User
@@ -59,7 +58,8 @@ func (h *handler) registerRoutes() {
 
 	//Product for seller
 	product_seller := h.http.Group(v1.BasePath() + "/seller/market")
-	product_seller.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).
+	product_seller.
+		Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).
 		POST("/product/upload", h.PostProduct).
 		PUT("/product/:product_id", h.UpdateProduct).
 		GET("/product", h.GetSellerProduct).
@@ -68,7 +68,8 @@ func (h *handler) registerRoutes() {
 
 	//Product for user
 	product_user := h.http.Group(v1.BasePath() + "/user/market")
-	product_user.Use(middleware.NewRepository(h.db).IsUserLoggedIn()).
+	product_user.
+		Use(middleware.NewRepository(h.db).IsUserLoggedIn()).
 		GET("/products/:page", h.GetAllProduct).
 		GET("/product/:product_id", h.GetProductByID).
 		POST("/cart", h.AddProductToCart).

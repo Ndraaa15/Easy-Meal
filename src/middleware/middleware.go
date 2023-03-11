@@ -88,16 +88,3 @@ func (r *Repository) IsUserLoggedIn() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-// func Cors() gin.HandlerFunc {
-// 	return func(ctx *gin.Context) {
-// 		c := cors.New(cors.Options{
-// 			AllowedOrigins:   []string{"http://localhost:3000"},
-// 			AllowCredentials: true,
-// 			AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut},
-// 			Debug:            true,
-// 		})
-// 		c.HandlerFunc(ctx.Writer, ctx.Request)
-// 		ctx.Next()
-// 	}
-// }

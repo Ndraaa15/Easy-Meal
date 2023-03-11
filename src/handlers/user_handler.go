@@ -4,6 +4,7 @@ import (
 	"bcc-project-v/src/entities"
 	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -17,6 +18,7 @@ func (h *handler) UserRegister(c *gin.Context) {
 	newUser := model.RegisterUser{}
 	if err := c.ShouldBindJSON(&newUser); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "The data you entered is in an invalid format. Please check and try again!", nil)
+		fmt.Println(err.Error())
 		return
 	}
 
@@ -24,6 +26,7 @@ func (h *handler) UserRegister(c *gin.Context) {
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Password format is incorrect. Please follow the specified format and try again!", nil)
+		fmt.Println(err.Error())
 		return
 	}
 
@@ -32,13 +35,13 @@ func (h *handler) UserRegister(c *gin.Context) {
 		Email:    newUser.Email,
 		Username: newUser.Username,
 		Password: string(hashPassword),
-		// Address:  newUser.Address,
-		Contact: newUser.Contact,
-		// Gender:   newUser.Gender,
+		Address:  newUser.Address,
+		Contact:  newUser.Contact,
 	}
 
 	if err = h.Repository.CreateUser(&user); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to add user to database. Please try again later or contact customer service for help", nil)
+		fmt.Println(err.Error())
 		return
 	}
 
@@ -50,6 +53,7 @@ func (h *handler) UserLogin(c *gin.Context) {
 	loginUser := model.LoginUser{}
 	if err := c.ShouldBindJSON(&loginUser); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "The data you entered is in an invalid format. Please check and try again!", nil)
+		fmt.Println("123132")
 		return
 	}
 
@@ -57,11 +61,13 @@ func (h *handler) UserLogin(c *gin.Context) {
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "User not found. Please try again with a valid username!", nil)
+		fmt.Println("1")
 		return
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(userFound.Password), []byte(loginUser.Password)); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", nil)
+		fmt.Println("2")
 		return
 	}
 
@@ -79,6 +85,7 @@ func (h *handler) UserLogin(c *gin.Context) {
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create token JWT. Please try again to login!", nil)
+		fmt.Println("3")
 		return
 	}
 
