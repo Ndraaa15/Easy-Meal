@@ -26,7 +26,6 @@ func (h *handler) UserRegister(c *gin.Context) {
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Password format is incorrect. Please follow the specified format and try again!", err.Error())
-		fmt.Println(err.Error())
 		return
 	}
 
@@ -46,7 +45,7 @@ func (h *handler) UserRegister(c *gin.Context) {
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Register successful! Welcome, "+user.Username+"!", user)
+	helper.SuccessResponse(c, http.StatusOK, "Register successful! Welcome, "+user.Username+" ! ", user)
 }
 
 func (h *handler) UserLogin(c *gin.Context) {
@@ -59,12 +58,12 @@ func (h *handler) UserLogin(c *gin.Context) {
 	userFound, err := h.Repository.FindUser(&loginUser)
 
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "User not found. Please try again with a valid username!", err.Error())
+		helper.ErrorResponse(c, http.StatusNotFound, "User not found. Please try again with a valid username!", err.Error())
 		return
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(userFound.Password), []byte(loginUser.Password)); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", err.Error())
+		helper.ErrorResponse(c, http.StatusUnauthorized, "Wrong password. Please try again with a valid password!", err.Error())
 		return
 	}
 

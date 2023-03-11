@@ -1,8 +1,8 @@
 package entities
 
 var (
-	Fruits     = "Fruit"
-	Vegetables = "Vegetables"
+	Fruits     = "Buah"
+	Vegetables = "Sayur"
 )
 
 type Category struct {

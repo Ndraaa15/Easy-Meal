@@ -37,8 +37,8 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	// 2. Initiate Snap request
 	req := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
-			OrderID:  "MID-PAY-EM-" + time.Now().UTC().Format("2006010215040105"),
-			GrossAmt: int64(cart.TotalPrice),
+			OrderID: "MID-PAY-EM-" + time.Now().UTC().Format("2006010215040105"),
+			// GrossAmt: int64(cart.TotalPrice),
 		},
 		CreditCard: &snap.CreditCardDetails{
 			Secure: true,
@@ -60,7 +60,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		return
 	}
 	payment := entities.Payment{}
-	payment.TotalPrice = cart.TotalPrice
+	// payment.TotalPrice = cart.TotalPrice
 	payment.UserID = user.ID
 	payment.CartID = cart.ID
 	payment.Type = "Online Payment"
@@ -101,7 +101,7 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	}
 
 	payment := entities.Payment{}
-	payment.TotalPrice = cart.TotalPrice
+	// payment.TotalPrice = cart.TotalPrice
 	payment.PaymentCode = uniqueCode
 	payment.UserID = user.ID
 	payment.CartID = cart.ID

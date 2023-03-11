@@ -37,36 +37,27 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 	}
 
 	newCartProduct := entities.CartProduct{
-		ProductID:    uint(productID),
-		Product:      *product,
-		Quantity:     newItem.Quantity,
-		ProductPrice: product.Price * float64(newItem.Quantity),
+		ProductID: uint(productID),
+		Product:   *product,
+		Quantity:  newItem.Quantity,
 	}
 
-	found := false
+	found := true
 	for i, p := range cart.CartProducts {
 		if p.ProductID == uint(productID) {
+			h.Repository.DeleteCartProductByID(p.ID)
 			cart.CartProducts[i] = newCartProduct
-			// if err := h.Repository.ReplaceCartProduct(&cart, newCartProduct); err != nil {
-			// 	return
-			// }
-			found = true
+			found = false
 			break
 		}
 	}
 
-	if !found {
+	if found {
 		cart.CartProducts = append(cart.CartProducts, newCartProduct)
 	}
 
-	var newTotalPrice float64
-	for _, p := range cart.CartProducts {
-		newTotalPrice += p.ProductPrice
-	}
-	cart.TotalPrice = float64(newTotalPrice)
-
 	if err := h.Repository.SaveCart(&cart); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save into cart", nil)
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save into cart", err.Error())
 		return
 	}
 	helper.SuccessResponse(c, http.StatusOK, "Product added to cart", nil)
@@ -87,13 +78,6 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to parse string into uint64", nil)
 		return
 	}
-
-	product, err := h.Repository.FindProduct(cartFound.ID, uint(productID))
-	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to find the product", nil)
-	}
-
-	cartFound.TotalPrice -= product.ProductPrice
 
 	if err := h.Repository.SaveCart(cartFound); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save into cart", nil)
