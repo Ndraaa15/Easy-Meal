@@ -43,7 +43,7 @@ func (h *handler) registerRoutes() {
 	//User
 	user := h.http.Group(v1.BasePath() + "/user")
 	user.POST("/signup", h.UserRegister)
-	user.GET("/login", h.UserLogin)
+	user.POST("/login", h.UserLogin)
 	user.Use(middleware.NewRepository(h.db).IsUserLoggedIn()).
 		PUT("/update", h.UserUpdate).
 		PUT("/update/password", h.UserUpdatePassword)
