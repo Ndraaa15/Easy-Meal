@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-
 	midtrans "github.com/veritrans/go-midtrans"
 )
 

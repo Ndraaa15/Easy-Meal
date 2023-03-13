@@ -100,10 +100,7 @@ func (h *handler) UserLogin(c *gin.Context) {
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+userFound.Username+" ! ", &userFound)
-	c.JSON(200, gin.H{
-		"token": tokenString,
-	})
+	helper.SuccessResponse(c, http.StatusOK, tokenString, &userFound)
 }
 
 func (h *handler) UserUpdate(c *gin.Context) {

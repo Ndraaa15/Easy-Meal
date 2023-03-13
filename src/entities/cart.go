@@ -23,6 +23,6 @@ type CartProduct struct {
 	SellerID  uint    `json:"seller_id" binding:"required"`
 	Quantity  uint    `json:"qty" binding:"required"`
 	Seller    Seller  `json:"-" gorm:"foreignKey:SellerID"`
-	Product   Product `json:"product" gorm:"foreignKey:ProductID"`
+	Product   Product `json:"-" gorm:"foreignKey:ProductID"`
 	Cart      Cart    `json:"-" gorm:"foreignKey:CartID"`
 }

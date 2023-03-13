@@ -165,3 +165,7 @@ func (h *handler) SellerUpdatePassword(c *gin.Context) {
 	}
 	helper.SuccessResponse(c, http.StatusOK, "Update Password Successful", &sellerFound)
 }
+
+// func (h *handler) GetOrder(c *gin.Context){
+// 	cart :=
+// }
