@@ -34,6 +34,9 @@ func (h *handler) registerRoutes() {
 	h.Repository.SeedCategory()
 	h.Repository.SeedStatus()
 
+	// userHandler := newUserHandler(h.Repository, h.config)
+	// userHandler.UserRegister
+
 	h.http.GET("/", func(ctx *gin.Context) {
 		helper.SuccessResponse(ctx, http.StatusOK, "Hello World", nil)
 	})
@@ -70,16 +73,16 @@ func (h *handler) registerRoutes() {
 	product_user := h.http.Group(v1.BasePath() + "/user/market")
 	product_user.
 		Use(middleware.NewRepository(h.db).IsUserLoggedIn()).
-		GET("/products/:page", h.GetAllProduct).
+		GET("/products", h.GetAllProduct).
 		GET("/product/:product_id", h.GetProductByID).
 		POST("/cart", h.AddProductToCart).
 		DELETE("/cart", h.RemoveProductFromCart).
 		GET("/cart", h.GetProductCart).
 		GET("/products/filter/:category", h.GetProductByFilter).
-		GET("/products", h.SearchProduct).
+		GET("/search", h.SearchProduct).
 		POST("/payment/offline", h.OfflinePayment).
 		POST("/payment/online", h.OnlinePayment).
-		GET("user/history")
+		GET("/history", h.GetHistory)
 }
 
 func (h *handler) Run() {

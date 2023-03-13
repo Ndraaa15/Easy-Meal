@@ -19,8 +19,10 @@ type CartProduct struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	CartID    uint    `json:"cart_id"`
-	ProductID uint    `json:"product_id" binding:"required" gorm:"primaryKey"`
+	ProductID uint    `json:"product_id" binding:"required"`
+	SellerID  uint    `json:"seller_id" binding:"required"`
 	Quantity  uint    `json:"qty" binding:"required"`
-	Product   Product `json:"-" gorm:"foreignKey:ProductID"`
+	Seller    Seller  `json:"-" gorm:"foreignKey:SellerID"`
+	Product   Product `json:"product" gorm:"foreignKey:ProductID"`
 	Cart      Cart    `json:"-" gorm:"foreignKey:CartID"`
 }

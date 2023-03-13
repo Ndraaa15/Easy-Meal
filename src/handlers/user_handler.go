@@ -14,6 +14,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// type UserHandler interface {
+// 	UserRegister(c *gin.Context)
+// 	UserLogin(c *gin.Context)
+// 	UserUpdate(c *gin.Context)
+// 	UserUpdatePassword(c *gin.Context)
+// }
+
+// type userHandler struct {
+// 	Repository repository.Repository
+// 	conf       config.Initializer
+// }
+
+// func newUserHandler(repo repository.Repository, conf config.Initializer) *userHandler {
+// 	return &userHandler{
+// 		Repository: repo,
+// 		conf:       conf,
+// 	}
+// }
+
 func (h *handler) UserRegister(c *gin.Context) {
 	newUser := model.RegisterUser{}
 	if err := c.ShouldBindJSON(&newUser); err != nil {
@@ -81,7 +100,10 @@ func (h *handler) UserLogin(c *gin.Context) {
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+userFound.Username+" ! ", tokenString)
+	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+userFound.Username+" ! ", &userFound)
+	c.JSON(200, gin.H{
+		"token": tokenString,
+	})
 }
 
 func (h *handler) UserUpdate(c *gin.Context) {

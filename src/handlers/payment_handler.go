@@ -4,72 +4,109 @@ import (
 	"bcc-project-v/src/entities"
 	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
+	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/midtrans/midtrans-go"
-	"github.com/midtrans/midtrans-go/snap"
+
+	midtrans "github.com/veritrans/go-midtrans"
 )
 
 func (h *handler) OnlinePayment(c *gin.Context) {
-	//GetCart
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
+
 	cart, err := h.Repository.GetCartForPayment(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 
-	userPayment, err := h.Repository.FindUserByID(user.ID)
+	var totalPayment float64
+	for _, p := range cart.CartProducts {
+		fmt.Println(p.Quantity)
+		product, _ := h.Repository.GetProductByID(p.ProductID)
+		fmt.Println(product.Price)
+		totalPayment += (float64(p.Quantity) * product.Price)
+	}
+
+	userFound, err := h.Repository.FindUserByID(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get user", nil)
 		return
 	}
 
 	// 1. Initiate Snap client
-	var s = snap.Client{}
-	s.New(os.Getenv("SERVER_MIDTRANS_KEY"), midtrans.Sandbox)
+	midclient := midtrans.NewClient()
+	midclient.ServerKey = h.config.GetEnv("SERVER_KEY")
+	midclient.ClientKey = h.config.GetEnv("CLIENT_KEY")
+	midclient.APIEnvType = midtrans.Sandbox
+
+	snapGateway := midtrans.SnapGateway{}
+	snapGateway = midtrans.SnapGateway{
+		Client: midclient,
+	}
 
 	// 2. Initiate Snap request
-	req := &snap.Request{
+	custAddress := &midtrans.CustAddress{
+		FName:   userFound.FName,
+		Phone:   userFound.Contact,
+		Address: userFound.Address,
+	}
+
+	snapReq := &midtrans.SnapReq{
 		TransactionDetails: midtrans.TransactionDetails{
-			OrderID: "MID-PAY-EM-" + time.Now().UTC().Format("2006010215040105"),
-			// GrossAmt: int64(cart.TotalPrice),
+			OrderID:  "MID-PAY-EM-" + time.Now().UTC().Format("2006010215040105"),
+			GrossAmt: int64(totalPayment),
 		},
-		CreditCard: &snap.CreditCardDetails{
-			Secure: true,
-		},
-		CustomerDetail: &midtrans.CustomerDetails{
-			FName: userPayment.Username,
-			Email: userPayment.Email,
-			Phone: userPayment.Contact,
+		CustomerDetail: &midtrans.CustDetail{
+			FName:    userFound.FName,
+			Email:    userFound.Email,
+			Phone:    userFound.Contact,
+			BillAddr: custAddress,
+			ShipAddr: custAddress,
 		},
 	}
 
 	// 3. Request create Snap transaction to Midtrans
-	snapResp, _ := s.CreateTransaction(req)
-
-	//create payment for database
-	status := entities.Status{}
-	if err := h.Repository.FindStatus(&status, 1); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get status", nil)
+	snapResp, err := snapGateway.GetToken(snapReq)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create payment token", err.Error())
 		return
 	}
-	payment := entities.Payment{}
-	// payment.TotalPrice = cart.TotalPrice
-	payment.UserID = user.ID
-	payment.CartID = cart.ID
-	payment.Type = "Online Payment"
-	payment.StatusID = 1
-	payment.PaymentCode = snapResp.Token
-	payment.Status = status
+
+	//create payment for database
+	dataBuyer := model.DataPayment{}
+	if err := c.ShouldBindJSON(&dataBuyer); err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", err.Error())
+		return
+	}
+
+	status := entities.Status{}
+	if err := h.Repository.FindStatus(&status, 1); err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get status", err.Error())
+		return
+	}
+
+	payment := entities.Payment{
+		TotalPrice:  totalPayment,
+		UserID:      user.ID,
+		CartID:      cart.ID,
+		Type:        "Online Payment",
+		StatusID:    1,
+		PaymentCode: snapResp.Token,
+		Status:      status,
+		FName:       dataBuyer.FName,
+		Address:     dataBuyer.Address,
+		Contact:     dataBuyer.Contact,
+		City:        dataBuyer.City,
+		Email:       dataBuyer.Email,
+	}
 
 	if err := h.Repository.CreatePayment(&payment); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Failed order", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to create order", err.Error())
 		return
 	}
 
@@ -86,7 +123,7 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	user := userClaims.(model.UserClaims)
 	cart, err := h.Repository.GetCartForPayment(user.ID)
 	if err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get cart", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get cart", err.Error())
 	}
 
 	// Membuat UUID secara acak
@@ -96,7 +133,7 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	uniqueCode := id.String()
 	status := entities.Status{}
 	if err := h.Repository.FindStatus(&status, 1); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get status", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get status", err.Error())
 		return
 	}
 
@@ -110,7 +147,7 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	payment.Status = status
 
 	if err := h.Repository.CreatePayment(&payment); err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Failed order", nil)
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed order", err.Error())
 		payment.StatusID = 3
 		return
 	}

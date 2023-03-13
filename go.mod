@@ -12,6 +12,7 @@ require (
 require (
 	github.com/gin-contrib/cors v1.4.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
+	github.com/veritrans/go-midtrans v0.0.0-20210616100512-16326c5eeb00 // indirect
 )
 
 require (

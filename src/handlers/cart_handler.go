@@ -27,7 +27,11 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		return
 	}
 
-	product, _ := h.Repository.GetProductByID(uint(productID))
+	product, err := h.Repository.GetProductByID(uint(productID))
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Product not found!!!", err.Error())
+		return
+	}
 
 	// find existing cart
 	cart := entities.Cart{}
@@ -40,6 +44,7 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		ProductID: uint(productID),
 		Product:   *product,
 		Quantity:  newItem.Quantity,
+		SellerID:  product.SellerID,
 	}
 
 	found := true

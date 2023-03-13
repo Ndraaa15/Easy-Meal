@@ -31,7 +31,7 @@ func (r *Repository) GetCart(userID uint) (*entities.Cart, error) {
 }
 func (r *Repository) GetCartForPayment(userID uint) (*entities.Cart, error) {
 	cart := entities.Cart{}
-	err := r.db.Where("user_id = ?", userID).First(&cart).Error
+	err := r.db.Preload("CartProducts").Preload("Products").Preload("User").Where("user_id = ?", userID).First(&cart).Error
 	return &cart, err
 }
 
@@ -46,11 +46,6 @@ func (r *Repository) FindProduct(cartID uint, productID uint) (entities.CartProd
 	err := r.db.Where("cart_id = ?", cartID).Where("product_id = ?", productID).First(&product).Error
 	return product, err
 }
-
-// func (r *Repository) ReplaceCartProduct(cart *entities.Cart, newCartProduct *entities.CartProduct) error {
-// 	err := r.db.Model(cart).Association("CartProducts").Replace(entities.Cart{CartProducts: newCartProduct})
-// 	return err
-// }
 
 func (r *Repository) UpdateSameProduct(productCartID uint, newCartProduct *entities.CartProduct) error {
 	err := r.db.Where("ID = ?", productCartID).Save(&newCartProduct).Error
