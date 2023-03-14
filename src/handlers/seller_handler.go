@@ -82,6 +82,7 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 
 	shop := c.PostForm("shop")
 	email := c.PostForm("email")
+	password := c.PostForm("password")
 	address := c.PostForm("address")
 	contact := c.PostForm("contact")
 
@@ -123,7 +124,14 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 	if sellerFound.SellerImage != link {
 		sellerFound.SellerImage = link
 	}
-
+	if password != "" {
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", err.Error())
+			return
+		}
+		sellerFound.Password = string(hashPassword)
+	}
 	if err := h.Repository.UpdateSeller(sellerFound); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", err.Error())
 		return
@@ -132,40 +140,40 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &sellerFound)
 }
 
-func (h *handler) SellerUpdatePassword(c *gin.Context) {
-	sellerClaims, _ := c.Get("seller")
-	seller := sellerClaims.(model.SellerClaims)
+// func (h *handler) SellerUpdatePassword(c *gin.Context) {
+// 	sellerClaims, _ := c.Get("seller")
+// 	seller := sellerClaims.(model.SellerClaims)
 
-	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
-	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Seller not found. Please try again later!", err.Error())
-		return
-	}
+// 	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
+// 	if err != nil {
+// 		helper.ErrorResponse(c, http.StatusInternalServerError, "Seller not found. Please try again later!", err.Error())
+// 		return
+// 	}
 
-	oldPassword := c.PostForm("old_password")
-	newPassword := c.PostForm("new_password")
+// 	oldPassword := c.PostForm("old_password")
+// 	newPassword := c.PostForm("new_password")
 
-	if err = bcrypt.CompareHashAndPassword([]byte(sellerFound.Password), []byte(oldPassword)); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", err.Error())
-		return
-	}
+// 	if err = bcrypt.CompareHashAndPassword([]byte(sellerFound.Password), []byte(oldPassword)); err != nil {
+// 		helper.ErrorResponse(c, http.StatusInternalServerError, "Wrong password. Please try again with a valid password!", err.Error())
+// 		return
+// 	}
 
-	if newPassword != "" {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
-		if err != nil {
-			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", err.Error())
-			return
-		}
-		sellerFound.Password = string(hashPassword)
-	}
+// 	if newPassword != "" {
+// 		hashPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+// 		if err != nil {
+// 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", err.Error())
+// 			return
+// 		}
+// 		sellerFound.Password = string(hashPassword)
+// 	}
 
-	if err := h.Repository.UpdateSeller(sellerFound); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
-		return
-	}
-	helper.SuccessResponse(c, http.StatusOK, "Update Password Successful", &sellerFound)
-}
-
-// func (h *handler) GetOrder(c *gin.Context){
-// 	cart :=
+// 	if err := h.Repository.UpdateSeller(sellerFound); err != nil {
+// 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
+// 		return
+// 	}
+// 	helper.SuccessResponse(c, http.StatusOK, "Update Password Successful", &sellerFound)
 // }
+
+func (h *handler) GetOrder(c *gin.Context) {
+
+}

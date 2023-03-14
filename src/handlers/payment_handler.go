@@ -108,9 +108,14 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		auth := smtp.PlainAuth("", h.config.GetEnv("EMAIL"), h.config.GetEnv("PASSWORD"), "smtp.gmail.com")
 		product, _ := h.Repository.GetProductByID(p.ProductID)
 		seller, _ := h.Repository.FindSellerByID(product.SellerID)
-		to := []string{seller.Email}
-		msg := []byte("Token Payment : " + snapResp.Token)
 
+		to := []string{seller.Email}
+		msg := []byte("Subject: Easy Meal Order\n\n")
+		msg = append(msg, []byte("Your order is coming!!!"+"\n")...)
+		msg = append(msg, []byte("Token Payment : "+snapResp.Token+"\n")...)
+		msg = append(msg, []byte("Buyer Name    : "+userFound.FName+"\n")...)
+		msg = append(msg, []byte("Buyer Email   : "+userFound.Email+"\n")...)
+		msg = append(msg, []byte("Products      : "+product.Name)...)
 		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("EMAIL"), to, msg)
 		if errr != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())

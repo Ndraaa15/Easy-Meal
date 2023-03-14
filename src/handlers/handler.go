@@ -48,16 +48,16 @@ func (h *handler) registerRoutes() {
 	user.POST("/signup", h.UserRegister)
 	user.POST("/login", h.UserLogin)
 	user.Use(middleware.NewRepository(h.db).IsUserLoggedIn()).
-		PUT("/update", h.UserUpdate).
-		PUT("/update/password", h.UserUpdatePassword)
+		PUT("/update", h.UserUpdate)
+		// PUT("/update/password", h.UserUpdatePassword)
 
 	//Admin
 	seller := h.http.Group(v1.BasePath() + "/seller")
 	seller.POST("/signup", h.SellerRegister)
 	seller.GET("/login", h.SellerLogin)
 	seller.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).
-		PUT("/update", h.SellerUpdate).
-		PUT("/update/password", h.SellerUpdatePassword)
+		PUT("/update", h.SellerUpdate)
+		// PUT("/update/password", h.SellerUpdatePassword)
 
 	//Product for seller
 	product_seller := h.http.Group(v1.BasePath() + "/seller/market")

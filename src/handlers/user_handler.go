@@ -14,25 +14,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// type UserHandler interface {
-// 	UserRegister(c *gin.Context)
-// 	UserLogin(c *gin.Context)
-// 	UserUpdate(c *gin.Context)
-// 	UserUpdatePassword(c *gin.Context)
-// }
-
-// type userHandler struct {
-// 	Repository repository.Repository
-// 	conf       config.Initializer
-// }
-
-// func newUserHandler(repo repository.Repository, conf config.Initializer) *userHandler {
-// 	return &userHandler{
-// 		Repository: repo,
-// 		conf:       conf,
-// 	}
-// }
-
 func (h *handler) UserRegister(c *gin.Context) {
 	newUser := model.RegisterUser{}
 	if err := c.ShouldBindJSON(&newUser); err != nil {
@@ -110,6 +91,7 @@ func (h *handler) UserUpdate(c *gin.Context) {
 
 	fname := c.PostForm("fname")
 	email := c.PostForm("email")
+	password := c.PostForm("password")
 	username := c.PostForm("username")
 	address := c.PostForm("address")
 	contact := c.PostForm("contact")
@@ -159,6 +141,14 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	if userFound.UserImage != link {
 		userFound.UserImage = link
 	}
+	if password != "" {
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", err.Error())
+			return
+		}
+		userFound.Password = string(hashPassword)
+	}
 
 	if err := h.Repository.UpdateUser(userFound); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", nil)
@@ -168,37 +158,37 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &userFound)
 }
 
-func (h *handler) UserUpdatePassword(c *gin.Context) {
-	userClaims, _ := c.Get("user")
-	user := userClaims.(model.UserClaims)
+// func (h *handler) UserUpdatePassword(c *gin.Context) {
+// 	userClaims, _ := c.Get("user")
+// 	user := userClaims.(model.UserClaims)
 
-	userFound, err := h.Repository.FindUserByID(user.ID)
-	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "User not found. Please try again later!", err.Error())
-		return
-	}
+// 	userFound, err := h.Repository.FindUserByID(user.ID)
+// 	if err != nil {
+// 		helper.ErrorResponse(c, http.StatusInternalServerError, "User not found. Please try again later!", err.Error())
+// 		return
+// 	}
 
-	oldPassword := c.PostForm("old_password")
-	newPassword := c.PostForm("new_password")
+// 	oldPassword := c.PostForm("old_password")
+// 	newPassword := c.PostForm("new_password")
 
-	if err = bcrypt.CompareHashAndPassword([]byte(userFound.Password), []byte(oldPassword)); err != nil {
-		helper.ErrorResponse(c, http.StatusUnauthorized, "Wrong password. Please try again with a valid password!", err.Error())
-		return
-	}
+// 	if err = bcrypt.CompareHashAndPassword([]byte(userFound.Password), []byte(oldPassword)); err != nil {
+// 		helper.ErrorResponse(c, http.StatusUnauthorized, "Wrong password. Please try again with a valid password!", err.Error())
+// 		return
+// 	}
 
-	if newPassword != "" {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
-		if err != nil {
-			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", err.Error())
-			return
-		}
-		userFound.Password = string(hashPassword)
-	}
+// 	if newPassword != "" {
+// 		hashPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+// 		if err != nil {
+// 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", err.Error())
+// 			return
+// 		}
+// 		userFound.Password = string(hashPassword)
+// 	}
 
-	if err := h.Repository.UpdateUser(userFound); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", err.Error())
-		return
-	}
+// 	if err := h.Repository.UpdateUser(userFound); err != nil {
+// 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", err.Error())
+// 		return
+// 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Update Password Successful", &userFound)
-}
+// 	helper.SuccessResponse(c, http.StatusOK, "Update Password Successful", &userFound)
+// }
