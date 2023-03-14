@@ -44,7 +44,7 @@ func (r *Repository) GetSellerProductByID(SellerID uint, ProductID uint) (entiti
 
 func (r *Repository) GetAllProduct() ([]entities.Product, error) {
 	products := []entities.Product{}
-	err := r.db.Preload("Category").Find(&products).Error
+	err := r.db.Preload("Seller").Preload("Category").Find(&products).Error
 	return products, err
 }
 

@@ -18,6 +18,11 @@ func (h *handler) PostProduct(c *gin.Context) {
 	sellerClaims, _ := c.Get("seller")
 	seller := sellerClaims.(model.SellerClaims)
 
+	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Seller not found", err.Error())
+	}
+
 	name := c.PostForm("name")
 	price := c.PostForm("price")
 	description := c.PostForm("description")
@@ -78,6 +83,7 @@ func (h *handler) PostProduct(c *gin.Context) {
 		CategoryID:   uint(categoryConv),
 		Category:     productCategory,
 		Mass:         uint(massConv),
+		Seller:       *sellerFound,
 	}
 
 	if err := h.Repository.CreateProduct(&product); err != nil {

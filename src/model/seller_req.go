@@ -17,6 +17,11 @@ type SellerLogin struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+type CheckOrder struct {
+	PaymentCode string `json:"payment_code" binding:"required"`
+}
+
 type GetSellerByID struct {
 	ID uint `uri:"id" binding:"required"`
 }

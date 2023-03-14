@@ -120,6 +120,12 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		if errr != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
 		}
+
+		product.Stock = product.Stock - p.Quantity
+		if err := h.Repository.SaveProduct(product); err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to udpate stock product", err.Error())
+			return
+		}
 	}
 
 	if err := h.Repository.CreatePayment(&payment); err != nil {
@@ -154,14 +160,22 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 		return
 	}
 
-	payment := entities.Payment{}
-	// payment.TotalPrice = cart.TotalPrice
-	payment.PaymentCode = uniqueCode
-	payment.UserID = user.ID
-	payment.CartID = cart.ID
-	payment.Type = "Offline Payment"
-	payment.StatusID = 1
-	payment.Status = status
+	var totalPayment float64
+	for _, p := range cart.CartProducts {
+		product, _ := h.Repository.GetProductByID(p.ProductID)
+		fmt.Println(product.Price)
+		totalPayment += (float64(p.Quantity) * product.Price)
+	}
+
+	payment := entities.Payment{
+		PaymentCode: uniqueCode,
+		UserID:      user.ID,
+		CartID:      cart.ID,
+		Type:        "Offline Payment",
+		StatusID:    1,
+		Status:      status,
+		TotalPrice:  totalPayment,
+	}
 
 	for _, p := range cart.CartProducts {
 		auth := smtp.PlainAuth("", "fuwafu212@gmail.com", "iufxycjevxxdaynm", "smtp.gmail.com")
@@ -175,6 +189,12 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 		errr := smtp.SendMail("smtp.gmail.com:587", auth, "fuwafu212@gmail.com", to, msg)
 		if errr != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
+		}
+
+		product.Stock = product.Stock - p.Quantity
+		if err := h.Repository.SaveProduct(product); err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to udpate stock product", err.Error())
+			return
 		}
 	}
 

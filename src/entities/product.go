@@ -10,7 +10,8 @@ type Product struct {
 	ProductImage string        `json:"product_image" binding:"required"`
 	Name         string        `json:"name" binding:"required"`
 	Price        float64       `json:"price" binding:"required"`
-	SellerID     uint          `json:"seller_id" binding:"required" gorm:"foreignKey:SellerID"`
+	SellerID     uint          `json:"seller_id" binding:"required"`
+	Seller       Seller        `json:"Seller" gorm:"foreignKey:SellerID"`
 	Description  string        `json:"description" binding:"required"`
 	Stock        uint          `json:"stock" binding:"required"`
 	Mass         uint          `json:"mass" binding:"required"`

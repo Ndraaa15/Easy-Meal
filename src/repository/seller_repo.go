@@ -28,3 +28,9 @@ func (r *Repository) UpdateSeller(seller *entities.Seller) error {
 	err := r.db.Debug().Save(&seller).Error
 	return err
 }
+
+func (r *Repository) CheckOrder(paymentCode string) (*entities.Payment, error) {
+	payment := entities.Payment{}
+	err := r.db.Where("payment_code = ?", paymentCode).Find(&payment).Error
+	return &payment, err
+}
