@@ -41,10 +41,11 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 	}
 
 	newCartProduct := entities.CartProduct{
-		ProductID: uint(productID),
-		Product:   *product,
-		Quantity:  newItem.Quantity,
-		SellerID:  product.SellerID,
+		ProductID:    uint(productID),
+		Product:      *product,
+		Quantity:     newItem.Quantity,
+		SellerID:     product.SellerID,
+		ProductPrice: float64(newItem.Quantity) * product.Price,
 	}
 
 	found := true
@@ -84,10 +85,10 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 		return
 	}
 
-	if err := h.Repository.SaveCart(cartFound); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save into cart", nil)
-		return
-	}
+	// if err := h.Repository.SaveCart(cartFound); err != nil {
+	// 	helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save into cart", nil)
+	// 	return
+	// }
 
 	if err := h.Repository.DeleteCartProduct(cartFound.ID, uint(productID)); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to remove product from cart", nil)

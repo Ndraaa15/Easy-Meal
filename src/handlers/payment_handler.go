@@ -26,9 +26,9 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 
 	var totalPayment float64
 	for _, p := range cart.CartProducts {
-		product, _ := h.Repository.GetProductByID(p.ProductID)
-		fmt.Println(product.Price)
-		totalPayment += (float64(p.Quantity) * product.Price)
+		totalPayment = totalPayment + p.ProductPrice
+		// product, _ := h.Repository.GetProductByID(p.ProductID)
+		// totalPayment += (float64(p.Quantity) * product.Price)
 	}
 
 	userFound, err := h.Repository.FindUserByID(user.ID)
@@ -104,6 +104,19 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		Email:       dataBuyer.Email,
 	}
 
+	for _, cp := range cart.CartProducts {
+		paymentProduct := entities.PaymentProduct{
+			ProductID:    cp.ProductID,
+			SellerID:     cp.SellerID,
+			Quantity:     cp.Quantity,
+			ProductPrice: cp.ProductPrice,
+			CartID:       cp.CartID,
+			Product:      cp.Product,
+		}
+		payment.PaymentProduct = append(payment.PaymentProduct, paymentProduct)
+	}
+	// payment.CartProducts = append(payment.CartProducts, cart.CartProducts...)
+
 	for _, p := range cart.CartProducts {
 		auth := smtp.PlainAuth("", h.config.GetEnv("EMAIL"), h.config.GetEnv("PASSWORD"), "smtp.gmail.com")
 		product, _ := h.Repository.GetProductByID(p.ProductID)
@@ -138,6 +151,11 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		"URL":   snapResp.RedirectURL,
 	})
 
+	if err := h.Repository.DeleteCartProductByCartID(cart.ID); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete cart product", err.Error())
+		return
+	}
+
 	helper.SuccessResponse(c, http.StatusOK, "Selamat pemesanan anda telah berhasil dilakukan!!!", &payment)
 }
 
@@ -147,6 +165,18 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	cart, err := h.Repository.GetProductCart(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get cart", err.Error())
+	}
+
+	userFound, err := h.Repository.FindUserByID(user.ID)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get user", nil)
+		return
+	}
+
+	dataBuyer := model.DataPayment{}
+	if err := c.ShouldBindJSON(&dataBuyer); err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", err.Error())
+		return
 	}
 
 	// Membuat UUID secara acak
@@ -168,25 +198,33 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	}
 
 	payment := entities.Payment{
-		PaymentCode: uniqueCode,
+		TotalPrice:  totalPayment,
 		UserID:      user.ID,
 		CartID:      cart.ID,
-		Type:        "Offline Payment",
+		Type:        "Online Payment",
 		StatusID:    1,
+		PaymentCode: uniqueCode,
 		Status:      status,
-		TotalPrice:  totalPayment,
+		FName:       dataBuyer.FName,
+		Address:     dataBuyer.Address,
+		Contact:     dataBuyer.Contact,
+		City:        dataBuyer.City,
+		Email:       dataBuyer.Email,
 	}
 
 	for _, p := range cart.CartProducts {
-		auth := smtp.PlainAuth("", "fuwafu212@gmail.com", "iufxycjevxxdaynm", "smtp.gmail.com")
+		auth := smtp.PlainAuth("", h.config.GetEnv("EMAIL"), h.config.GetEnv("PASSWORD"), "smtp.gmail.com")
 		product, _ := h.Repository.GetProductByID(p.ProductID)
-		// set up email message
 		seller, _ := h.Repository.FindSellerByID(product.SellerID)
-		to := []string{seller.Email}
-		msg := []byte("Token Payment : " + uniqueCode)
 
-		// send email using Gmail SMTP server
-		errr := smtp.SendMail("smtp.gmail.com:587", auth, "fuwafu212@gmail.com", to, msg)
+		to := []string{seller.Email}
+		msg := []byte("Subject: Easy Meal Order\n\n")
+		msg = append(msg, []byte("Your order is coming!!!"+"\n")...)
+		msg = append(msg, []byte("Token Payment : "+uniqueCode+"\n")...)
+		msg = append(msg, []byte("Buyer Name    : "+userFound.FName+"\n")...)
+		msg = append(msg, []byte("Buyer Email   : "+userFound.Email+"\n")...)
+		msg = append(msg, []byte("Products      : "+product.Name)...)
+		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("EMAIL"), to, msg)
 		if errr != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
 		}

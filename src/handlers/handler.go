@@ -65,7 +65,7 @@ func (h *handler) registerRoutes() {
 		Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).
 		POST("/product/upload", h.PostProduct).
 		PUT("/product/:product_id", h.UpdateProduct).
-		GET("/product", h.GetSellerProduct).
+		GET("/products", h.GetSellerProduct).
 		GET("/product/:product_id", h.GetSellerProductByID).
 		DELETE("/product/:product_id", h.DeleteProductByID).
 		POST("check", h.CheckPayment)

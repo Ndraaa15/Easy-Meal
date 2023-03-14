@@ -57,3 +57,25 @@ func (r *Repository) DeleteCartProductByID(targetDeleteID uint) error {
 	err := r.db.Debug().Delete(&entities.CartProduct{}, targetDeleteID).Error
 	return err
 }
+
+func (r *Repository) DeleteCartProductByCartID(cartID uint) error {
+	cartProduct := entities.CartProduct{}
+	err := r.db.Where("cart_id = ?", cartID).Delete(&cartProduct).Unscoped().Error
+	return err
+}
+
+func (r *Repository) GetProductCartForPayment(cartID uint) ([]entities.CartProduct, error) {
+	cartProducts := []entities.CartProduct{}
+	err := r.db.Where("cart_id = ?", cartID).Find(&cartProducts).Error
+	return cartProducts, err
+}
+
+func (r *Repository) CreatePaymentProduct(productPayment *entities.PaymentProduct) error {
+	err := r.db.Create(productPayment).Error
+	return err
+}
+
+func (r *Repository) SavePaymentProduct(productPayment *entities.PaymentProduct) error {
+	err := r.db.Save(productPayment).Error
+	return err
+}
