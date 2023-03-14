@@ -29,11 +29,12 @@ func (r *Repository) GetCart(userID uint) (*entities.Cart, error) {
 	err := r.db.Preload("User").Preload("Cart").Where("user_id = ?", userID).First(&cart).Error
 	return &cart, err
 }
-func (r *Repository) GetCartForPayment(userID uint) (*entities.Cart, error) {
-	cart := entities.Cart{}
-	err := r.db.Preload("CartProducts").Preload("Products").Preload("User").Where("user_id = ?", userID).First(&cart).Error
-	return &cart, err
-}
+
+// func (r *Repository) GetCartForPayment(userID uint) (*entities.Cart, error) {
+// 	cart := entities.Cart{}
+// 	err := r.db.Preload("CartProducts").Preload("Products").Preload("User").Where("user_id = ?", userID).First(&cart).Error
+// 	return &cart, err
+// }
 
 func (r *Repository) DeleteCartProduct(cartID uint, productID uint) error {
 	cartProduct := entities.CartProduct{}

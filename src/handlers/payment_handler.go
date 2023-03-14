@@ -6,6 +6,7 @@ import (
 	"bcc-project-v/src/model"
 	"fmt"
 	"net/http"
+	"net/smtp"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
 
-	cart, err := h.Repository.GetCartForPayment(user.ID)
+	cart, err := h.Repository.GetProductCart(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, err.Error(), nil)
 		return
@@ -25,7 +26,6 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 
 	var totalPayment float64
 	for _, p := range cart.CartProducts {
-		fmt.Println(p.Quantity)
 		product, _ := h.Repository.GetProductByID(p.ProductID)
 		fmt.Println(product.Price)
 		totalPayment += (float64(p.Quantity) * product.Price)
@@ -104,6 +104,19 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		Email:       dataBuyer.Email,
 	}
 
+	for _, p := range cart.CartProducts {
+		auth := smtp.PlainAuth("", h.config.GetEnv("EMAIL"), h.config.GetEnv("PASSWORD"), "smtp.gmail.com")
+		product, _ := h.Repository.GetProductByID(p.ProductID)
+		seller, _ := h.Repository.FindSellerByID(product.SellerID)
+		to := []string{seller.Email}
+		msg := []byte("Token Payment : " + snapResp.Token)
+
+		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("EMAIL"), to, msg)
+		if errr != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
+		}
+	}
+
 	if err := h.Repository.CreatePayment(&payment); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to create order", err.Error())
 		return
@@ -120,7 +133,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 func (h *handler) OfflinePayment(c *gin.Context) {
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
-	cart, err := h.Repository.GetCartForPayment(user.ID)
+	cart, err := h.Repository.GetProductCart(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get cart", err.Error())
 	}
@@ -144,6 +157,21 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	payment.Type = "Offline Payment"
 	payment.StatusID = 1
 	payment.Status = status
+
+	for _, p := range cart.CartProducts {
+		auth := smtp.PlainAuth("", "fuwafu212@gmail.com", "iufxycjevxxdaynm", "smtp.gmail.com")
+		product, _ := h.Repository.GetProductByID(p.ProductID)
+		// set up email message
+		seller, _ := h.Repository.FindSellerByID(product.SellerID)
+		to := []string{seller.Email}
+		msg := []byte("Token Payment : " + uniqueCode)
+
+		// send email using Gmail SMTP server
+		errr := smtp.SendMail("smtp.gmail.com:587", auth, "fuwafu212@gmail.com", to, msg)
+		if errr != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
+		}
+	}
 
 	if err := h.Repository.CreatePayment(&payment); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed order", err.Error())
