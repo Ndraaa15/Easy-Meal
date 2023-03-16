@@ -6,6 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// -----------------Seed Category----------------------
+
 func (r *Repository) SeedCategory() error {
 	var categories []entities.Category
 
@@ -21,21 +23,18 @@ func (r *Repository) SeedCategory() error {
 		},
 	}
 
-	if err := r.db.Create(&categories).Error; err != nil {
+	if err := r.db.Debug().Create(&categories).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *Repository) FindCategory(categoryProduct *entities.Category, CategoryID uint) error {
-	err := r.db.Find(&categoryProduct, CategoryID).Error
-	return err
-}
+// -----------------Seed Status----------------------
 
 func (r *Repository) SeedStatus() error {
 	var status []entities.Status
 
-	if err := r.db.First(&status).Error; err != gorm.ErrRecordNotFound {
+	if err := r.db.Debug().First(&status).Error; err != gorm.ErrRecordNotFound {
 		return err
 	}
 	status = []entities.Status{
@@ -56,7 +55,14 @@ func (r *Repository) SeedStatus() error {
 	return nil
 }
 
+// --------------------------------------------------
+
+func (r *Repository) FindCategory(categoryProduct *entities.Category, CategoryID uint) error {
+	err := r.db.Debug().Find(&categoryProduct, CategoryID).Error
+	return err
+}
+
 func (r *Repository) FindStatus(statusPayment *entities.Status, StatusID uint) error {
-	err := r.db.Find(&statusPayment, StatusID).Error
+	err := r.db.Debug().Find(&statusPayment, StatusID).Error
 	return err
 }

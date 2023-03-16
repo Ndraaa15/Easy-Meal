@@ -1,6 +1,6 @@
 package model
 
-type DataPayment struct {
+type DataBuyer struct {
 	FName   string `json:"fname" binding:"required"`
 	Contact string `json:"contact" binding:"required"`
 	Address string `json:"address" binding:"required"`

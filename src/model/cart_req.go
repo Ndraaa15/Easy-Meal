@@ -1,5 +1,5 @@
 package model
 
-type NewItem struct {
-	Quantity uint `json:"qty" binding:"required"`
+type ProductQuantity struct {
+	Quantity uint `json:"quantity" binding:"required"`
 }

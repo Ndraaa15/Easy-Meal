@@ -7,5 +7,5 @@ var (
 
 type Category struct {
 	ID   uint
-	Name string `gorm:"type:VARCHAR(30)"`
+	Name string `gorm:"type:VARCHAR(5)"`
 }

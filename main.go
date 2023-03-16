@@ -28,10 +28,18 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Database connected successfully!")
+	fmt.Println("Database connect successfully!")
 
-	db.Debug().AutoMigrate(&entities.User{}, &entities.Seller{}, &entities.Product{}, &entities.Cart{},
-		&entities.CartProduct{}, &entities.Category{}, &entities.Payment{}, &entities.PaymentProduct{})
+	db.Debug().AutoMigrate(
+		&entities.User{},
+		&entities.Seller{},
+		&entities.Product{},
+		&entities.Cart{},
+		&entities.CartProduct{},
+		&entities.Category{},
+		&entities.Payment{},
+		&entities.PaymentProduct{},
+	)
 
 	handler := handlers.Init(conf, repository.NewRepository(db))
 	handler.Run()

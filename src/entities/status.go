@@ -8,5 +8,5 @@ var (
 
 type Status struct {
 	ID     uint
-	Status string `gorm:"type:VARCHAR(30)"`
+	Status string `gorm:"type:VARCHAR(15)"`
 }

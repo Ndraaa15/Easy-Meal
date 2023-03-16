@@ -4,9 +4,9 @@ import (
 	"bcc-project-v/src/entities"
 	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
-	"fmt"
 	"net/http"
 	"net/smtp"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -77,7 +77,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	}
 
 	//create payment for database
-	dataBuyer := model.DataPayment{}
+	dataBuyer := model.DataBuyer{}
 	if err := c.ShouldBindJSON(&dataBuyer); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", err.Error())
 		return
@@ -113,9 +113,8 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 			CartID:       cp.CartID,
 			Product:      cp.Product,
 		}
-		payment.PaymentProduct = append(payment.PaymentProduct, paymentProduct)
+		payment.PaymentProducts = append(payment.PaymentProducts, paymentProduct)
 	}
-	// payment.CartProducts = append(payment.CartProducts, cart.CartProducts...)
 
 	for _, p := range cart.CartProducts {
 		auth := smtp.PlainAuth("", h.config.GetEnv("EMAIL"), h.config.GetEnv("PASSWORD"), "smtp.gmail.com")
@@ -173,7 +172,7 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 		return
 	}
 
-	dataBuyer := model.DataPayment{}
+	dataBuyer := model.DataBuyer{}
 	if err := c.ShouldBindJSON(&dataBuyer); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", err.Error())
 		return
@@ -192,16 +191,16 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 
 	var totalPayment float64
 	for _, p := range cart.CartProducts {
-		product, _ := h.Repository.GetProductByID(p.ProductID)
-		fmt.Println(product.Price)
-		totalPayment += (float64(p.Quantity) * product.Price)
+		totalPayment += p.ProductPrice
+		// product, _ := h.Repository.GetProductByID(p.ProductID)
+		// totalPayment += (float64(p.Quantity) * product.Price)
 	}
 
 	payment := entities.Payment{
 		TotalPrice:  totalPayment,
 		UserID:      user.ID,
 		CartID:      cart.ID,
-		Type:        "Online Payment",
+		Type:        "Offline Payment",
 		StatusID:    1,
 		PaymentCode: uniqueCode,
 		Status:      status,
@@ -210,6 +209,18 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 		Contact:     dataBuyer.Contact,
 		City:        dataBuyer.City,
 		Email:       dataBuyer.Email,
+	}
+
+	for _, cp := range cart.CartProducts {
+		paymentProduct := entities.PaymentProduct{
+			ProductID:    cp.ProductID,
+			SellerID:     cp.SellerID,
+			Quantity:     cp.Quantity,
+			ProductPrice: cp.ProductPrice,
+			CartID:       cp.CartID,
+			Product:      cp.Product,
+		}
+		payment.PaymentProducts = append(payment.PaymentProducts, paymentProduct)
 	}
 
 	for _, p := range cart.CartProducts {
@@ -241,5 +252,26 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 		payment.StatusID = 3
 		return
 	}
+
+	if err := h.Repository.DeleteCartProductByCartID(cart.ID); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete cart product", err.Error())
+		return
+	}
 	helper.SuccessResponse(c, http.StatusOK, "Selamat pemesanan anda telah berhasil dilakukan!!!", &payment)
+}
+
+func (h *handler) FilterStatus(c *gin.Context) {
+	statusIDStr := c.Param("status")
+	categoryIDConv, err := strconv.Atoi(statusIDStr)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parse string into uint", err.Error())
+		return
+	}
+	payments, err := h.Repository.FilteredStatus(uint(categoryIDConv))
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to get payment", err.Error())
+		return
+	}
+
+	helper.SuccessResponse(c, http.StatusOK, "Filter succesfull", payments)
 }

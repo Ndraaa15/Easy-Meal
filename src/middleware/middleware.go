@@ -44,11 +44,6 @@ func (r *Repository) IsSellerLoggedIn() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
 		}
-		// Checking seller (?)
-		// if err := r.db.Debug().First(&entities.Seller{}, seller.ID).Error; err != nil {
-		// 	helper.ErrorResponse(c, http.StatusBadRequest, "Can't find seller. Please try again!", nil)
-		// 	return
-		// }
 		c.Set("seller", seller)
 		c.Next()
 	}
@@ -78,12 +73,6 @@ func (r *Repository) IsUserLoggedIn() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
 		}
-		// Checking user (?)
-		// if err := r.db.Debug().First(&entities.User{}, &user.ID).Error; err != nil {
-		// 	helper.ErrorResponse(c, http.StatusBadRequest, err.Error(), nil)
-		// 	return
-		// }
-
 		c.Set("user", user)
 		c.Next()
 	}

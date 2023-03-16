@@ -11,8 +11,15 @@ require (
 
 require (
 	github.com/gin-contrib/cors v1.4.0 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
+	github.com/martinlindhe/google-geolocate v0.0.0-20211021100736-8c4877eb6655 // indirect
+	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
 	github.com/veritrans/go-midtrans v0.0.0-20210616100512-16326c5eeb00 // indirect
+	go.opencensus.io v0.22.3 // indirect
+	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
+	googlemaps.github.io/maps v1.4.0 // indirect
 )
 
 require (

@@ -272,6 +272,7 @@ func (h *handler) GetProductByFilter(c *gin.Context) {
 	categoryIDConv, err := strconv.Atoi(categoryIDStr)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parse string into uint", err.Error())
+		return
 	}
 
 	products, err := h.Repository.FilteredProduct(uint(categoryIDConv))

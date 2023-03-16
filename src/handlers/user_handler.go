@@ -85,7 +85,6 @@ func (h *handler) UserLogin(c *gin.Context) {
 }
 
 func (h *handler) UserUpdate(c *gin.Context) {
-
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
 
@@ -157,38 +156,3 @@ func (h *handler) UserUpdate(c *gin.Context) {
 
 	helper.SuccessResponse(c, http.StatusOK, "Update Successful", &userFound)
 }
-
-// func (h *handler) UserUpdatePassword(c *gin.Context) {
-// 	userClaims, _ := c.Get("user")
-// 	user := userClaims.(model.UserClaims)
-
-// 	userFound, err := h.Repository.FindUserByID(user.ID)
-// 	if err != nil {
-// 		helper.ErrorResponse(c, http.StatusInternalServerError, "User not found. Please try again later!", err.Error())
-// 		return
-// 	}
-
-// 	oldPassword := c.PostForm("old_password")
-// 	newPassword := c.PostForm("new_password")
-
-// 	if err = bcrypt.CompareHashAndPassword([]byte(userFound.Password), []byte(oldPassword)); err != nil {
-// 		helper.ErrorResponse(c, http.StatusUnauthorized, "Wrong password. Please try again with a valid password!", err.Error())
-// 		return
-// 	}
-
-// 	if newPassword != "" {
-// 		hashPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
-// 		if err != nil {
-// 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create new password", err.Error())
-// 			return
-// 		}
-// 		userFound.Password = string(hashPassword)
-// 	}
-
-// 	if err := h.Repository.UpdateUser(userFound); err != nil {
-// 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save update to database. Please try again later!", err.Error())
-// 		return
-// 	}
-
-// 	helper.SuccessResponse(c, http.StatusOK, "Update Password Successful", &userFound)
-// }

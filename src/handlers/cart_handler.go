@@ -14,7 +14,7 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 	userClaims, _ := c.Get("user")
 	user := userClaims.(model.UserClaims)
 
-	newItem := model.NewItem{}
+	newItem := model.ProductQuantity{}
 	if err := c.BindJSON(&newItem); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Invalid request body", nil)
 		return
