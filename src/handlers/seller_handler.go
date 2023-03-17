@@ -95,7 +95,7 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 	linkMaps := c.PostForm("link_maps")
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
-		"https://arcudskzafkijqukfool.supabase.co",
+		h.config.GetEnv("SUPABASE_URL"),
 		h.config.GetEnv("SUPABASE_API_KEY"),
 		h.config.GetEnv("SUPABASE_STORAGE"),
 		h.config.GetEnv("SUPABASE_SELLER_FOLDER"),

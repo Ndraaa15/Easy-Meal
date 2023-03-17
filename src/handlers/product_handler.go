@@ -35,7 +35,7 @@ func (h *handler) PostProduct(c *gin.Context) {
 	mass := c.PostForm("mass")
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
-		"https://arcudskzafkijqukfool.supabase.co",
+		h.config.GetEnv("SUPABASE_URL"),
 		h.config.GetEnv("SUPABASE_API_KEY"),
 		h.config.GetEnv("SUPABASE_STORAGE"),
 		h.config.GetEnv("SUPABASE_PRODUCT_FOLDER"),
@@ -114,7 +114,7 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 	mass := c.PostForm("mass")
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
-		"https://arcudskzafkijqukfool.supabase.co",
+		h.config.GetEnv("SUPABASE_URL"),
 		h.config.GetEnv("SUPABASE_API_KEY"),
 		h.config.GetEnv("SUPABASE_STORAGE"),
 		h.config.GetEnv("SUPABASE_PRODUCT_FOLDER"),
