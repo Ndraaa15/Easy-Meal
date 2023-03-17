@@ -40,12 +40,11 @@ func (h *handler) UserRegister(c *gin.Context) {
 	}
 
 	if err = h.Repository.CreateUser(&user); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed add user to database. Please try again later or contact customer service for help", err.Error())
-		fmt.Println(err.Error())
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed add user to database. Please try again later!", err.Error())
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Register successful! Welcome, "+user.Username+" ! ", user)
+	helper.SuccessResponse(c, http.StatusOK, "Register successful! Welcome, "+user.Username+"!", &user)
 }
 
 func (h *handler) UserLogin(c *gin.Context) {
@@ -85,7 +84,10 @@ func (h *handler) UserLogin(c *gin.Context) {
 }
 
 func (h *handler) UserUpdate(c *gin.Context) {
-	userClaims, _ := c.Get("user")
+	userClaims, exist := c.Get("user")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	user := userClaims.(model.UserClaims)
 
 	fname := c.PostForm("fname")
@@ -98,10 +100,13 @@ func (h *handler) UserUpdate(c *gin.Context) {
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
 		"https://arcudskzafkijqukfool.supabase.co",
-		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyY3Vkc2t6YWZraWpxdWtmb29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc2NDk3MjksImV4cCI6MTk5MzIyNTcyOX0.CjOVpoFAdq3U-AeAzsuyV6IGcqx2ZnaXjneTis5qd6w",
-		"bcc-project",
-		"user-image",
+		h.config.GetEnv("SUPABASE_API_KEY"),
+		h.config.GetEnv("SUPABASE_STORAGE"),
+		h.config.GetEnv("SUPABASE_USER_FOLDER"),
 	)
+	fmt.Println(h.config.GetEnv("SUPABASE_URL"))
+	fmt.Println(h.config.GetEnv("SUPABASE_API_KEY"))
+	fmt.Println(h.config.GetEnv("SUPABASE_STORAGE"))
 	file, err := c.FormFile("user_image")
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get user image", err.Error())

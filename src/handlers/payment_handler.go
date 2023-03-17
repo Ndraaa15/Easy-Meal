@@ -15,7 +15,10 @@ import (
 )
 
 func (h *handler) OnlinePayment(c *gin.Context) {
-	userClaims, _ := c.Get("user")
+	userClaims, exist := c.Get("user")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	user := userClaims.(model.UserClaims)
 
 	cart, err := h.Repository.GetProductCart(user.ID)
@@ -37,7 +40,6 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		return
 	}
 
-	// 1. Initiate Snap client
 	midclient := midtrans.NewClient()
 	midclient.ServerKey = h.config.GetEnv("SERVER_KEY")
 	midclient.ClientKey = h.config.GetEnv("CLIENT_KEY")
@@ -48,7 +50,6 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		Client: midclient,
 	}
 
-	// 2. Initiate Snap request
 	custAddress := &midtrans.CustAddress{
 		FName:   userFound.FName,
 		Phone:   userFound.Contact,
@@ -69,14 +70,12 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		},
 	}
 
-	// 3. Request create Snap transaction to Midtrans
 	snapResp, err := snapGateway.GetToken(snapReq)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to create payment token", err.Error())
 		return
 	}
 
-	//create payment for database
 	dataBuyer := model.DataBuyer{}
 	if err := c.ShouldBindJSON(&dataBuyer); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "The data you entered is in an invalid format. Please check and try again!", err.Error())
@@ -117,18 +116,26 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	}
 
 	for _, p := range cart.CartProducts {
-		auth := smtp.PlainAuth("", h.config.GetEnv("EMAIL"), h.config.GetEnv("PASSWORD"), "smtp.gmail.com")
-		product, _ := h.Repository.GetProductByID(p.ProductID)
-		seller, _ := h.Repository.FindSellerByID(product.SellerID)
+		auth := smtp.PlainAuth("", h.config.GetEnv("BASE_EMAIL"), h.config.GetEnv("EMAIL_KEY"), "smtp.gmail.com")
+		product, err := h.Repository.GetProductByID(p.ProductID)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to found product", err.Error())
+		}
+		seller, err := h.Repository.FindSellerByID(product.SellerID)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to found seller", err.Error())
+		}
 
 		to := []string{seller.Email}
 		msg := []byte("Subject: Easy Meal Order\n\n")
 		msg = append(msg, []byte("Your order is coming!!!"+"\n")...)
-		msg = append(msg, []byte("Token Payment : "+snapResp.Token+"\n")...)
-		msg = append(msg, []byte("Buyer Name    : "+userFound.FName+"\n")...)
-		msg = append(msg, []byte("Buyer Email   : "+userFound.Email+"\n")...)
-		msg = append(msg, []byte("Products      : "+product.Name)...)
-		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("EMAIL"), to, msg)
+		msg = append(msg, []byte("Token Payment 	 : "+snapResp.Token+"\n")...)
+		msg = append(msg, []byte("Buyer Name    	 : "+userFound.FName+"\n")...)
+		msg = append(msg, []byte("Buyer Email   	 : "+userFound.Email+"\n")...)
+		msg = append(msg, []byte("Products      	 : "+product.Name)...)
+		msg = append(msg, []byte("Quantity      	 : "+strconv.Itoa(int(p.Quantity))+"\n")...)
+		msg = append(msg, []byte("Product Price      : "+strconv.Itoa(int(p.ProductPrice)))...)
+		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("BASE_EMAIL"), to, msg)
 		if errr != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
 		}
@@ -145,22 +152,25 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"Token": snapResp.Token,
-		"URL":   snapResp.RedirectURL,
-	})
-
 	if err := h.Repository.DeleteCartProductByCartID(cart.ID); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to delete cart product", err.Error())
 		return
 	}
 
+	c.JSON(http.StatusOK, gin.H{
+		"Token": snapResp.Token,
+		"URL":   snapResp.RedirectURL,
+	})
 	helper.SuccessResponse(c, http.StatusOK, "Selamat pemesanan anda telah berhasil dilakukan!!!", &payment)
 }
 
 func (h *handler) OfflinePayment(c *gin.Context) {
-	userClaims, _ := c.Get("user")
+	userClaims, exist := c.Get("user")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	user := userClaims.(model.UserClaims)
+
 	cart, err := h.Repository.GetProductCart(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get cart", err.Error())
@@ -192,8 +202,6 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	var totalPayment float64
 	for _, p := range cart.CartProducts {
 		totalPayment += p.ProductPrice
-		// product, _ := h.Repository.GetProductByID(p.ProductID)
-		// totalPayment += (float64(p.Quantity) * product.Price)
 	}
 
 	payment := entities.Payment{
@@ -224,18 +232,26 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	}
 
 	for _, p := range cart.CartProducts {
-		auth := smtp.PlainAuth("", h.config.GetEnv("EMAIL"), h.config.GetEnv("PASSWORD"), "smtp.gmail.com")
-		product, _ := h.Repository.GetProductByID(p.ProductID)
-		seller, _ := h.Repository.FindSellerByID(product.SellerID)
+		auth := smtp.PlainAuth("", h.config.GetEnv("BASE_EMAIL"), h.config.GetEnv("EMAIL_KEY"), "smtp.gmail.com")
+		product, err := h.Repository.GetProductByID(p.ProductID)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to found product", err.Error())
+		}
+		seller, err := h.Repository.FindSellerByID(product.SellerID)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to found seller", err.Error())
+		}
 
 		to := []string{seller.Email}
 		msg := []byte("Subject: Easy Meal Order\n\n")
 		msg = append(msg, []byte("Your order is coming!!!"+"\n")...)
-		msg = append(msg, []byte("Token Payment : "+uniqueCode+"\n")...)
-		msg = append(msg, []byte("Buyer Name    : "+userFound.FName+"\n")...)
-		msg = append(msg, []byte("Buyer Email   : "+userFound.Email+"\n")...)
-		msg = append(msg, []byte("Products      : "+product.Name)...)
-		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("EMAIL"), to, msg)
+		msg = append(msg, []byte("Token Payment 	 : "+uniqueCode+"\n")...)
+		msg = append(msg, []byte("Buyer Name    	 : "+userFound.FName+"\n")...)
+		msg = append(msg, []byte("Buyer Email   	 : "+userFound.Email+"\n")...)
+		msg = append(msg, []byte("Product       	 : "+product.Name+"\n")...)
+		msg = append(msg, []byte("Quantity      	 : "+strconv.Itoa(int(p.Quantity))+"\n")...)
+		msg = append(msg, []byte("Product Price      : "+strconv.Itoa(int(p.ProductPrice)))...)
+		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("BASE_EMAIL"), to, msg)
 		if errr != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
 		}

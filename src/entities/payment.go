@@ -19,5 +19,5 @@ type Payment struct {
 	Address         string           `json:"address" binding:"required"`
 	Email           string           `json:"email" binding:"required"`
 	City            string           `json:"city" binding:"required"`
-	PaymentProducts []PaymentProduct `json:"paymentProduct" binding:"cartID"`
+	PaymentProducts []PaymentProduct `json:"payment_product"`
 }

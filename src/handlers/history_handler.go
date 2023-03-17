@@ -9,7 +9,10 @@ import (
 )
 
 func (h *handler) GetHistory(c *gin.Context) {
-	userClaims, _ := c.Get("user")
+	userClaims, exist := c.Get("user")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	user := userClaims.(model.UserClaims)
 
 	histories, err := h.Repository.GetHistory(user.ID)

@@ -4,6 +4,7 @@ import (
 	"bcc-project-v/src/entities"
 	"bcc-project-v/src/helper"
 	"bcc-project-v/src/model"
+	"fmt"
 	"strconv"
 
 	"net/http"
@@ -15,7 +16,10 @@ import (
 // -----------------FOR SELLER----------------------
 
 func (h *handler) PostProduct(c *gin.Context) {
-	sellerClaims, _ := c.Get("seller")
+	sellerClaims, exist := c.Get("seller")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	seller := sellerClaims.(model.SellerClaims)
 
 	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
@@ -32,9 +36,9 @@ func (h *handler) PostProduct(c *gin.Context) {
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
 		"https://arcudskzafkijqukfool.supabase.co",
-		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyY3Vkc2t6YWZraWpxdWtmb29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc2NDk3MjksImV4cCI6MTk5MzIyNTcyOX0.CjOVpoFAdq3U-AeAzsuyV6IGcqx2ZnaXjneTis5qd6w",
-		"bcc-project",
-		"product-image",
+		h.config.GetEnv("SUPABASE_API_KEY"),
+		h.config.GetEnv("SUPABASE_STORAGE"),
+		h.config.GetEnv("SUPABASE_PRODUCT_FOLDER"),
 	)
 	file, err := c.FormFile("product_image")
 	if err != nil {
@@ -109,38 +113,13 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 	category := c.PostForm("category")
 	mass := c.PostForm("mass")
 
-	massConv, err := strconv.Atoi(mass)
-	if err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
-	}
-
-	priceConv, err := strconv.ParseFloat(price, 64)
-	if err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into float64", err.Error())
-	}
-
-	stockConv, err := strconv.ParseUint(stock, 10, 64)
-	if err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
-	}
-
-	categoryConv, err := strconv.ParseUint(category, 10, 64)
-	if err != nil {
-		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
-	}
-
-	productCategory := entities.Category{}
-	if err := h.Repository.FindCategory(&productCategory, uint(categoryConv)); err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Sorry, Cant find the category. Please choose another category", err.Error())
-		return
-	}
-
 	supClient := supabasestorageuploader.NewSupabaseClient(
 		"https://arcudskzafkijqukfool.supabase.co",
-		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyY3Vkc2t6YWZraWpxdWtmb29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc2NDk3MjksImV4cCI6MTk5MzIyNTcyOX0.CjOVpoFAdq3U-AeAzsuyV6IGcqx2ZnaXjneTis5qd6w",
-		"bcc-project",
-		"product-image",
+		h.config.GetEnv("SUPABASE_API_KEY"),
+		h.config.GetEnv("SUPABASE_STORAGE"),
+		h.config.GetEnv("SUPABASE_PRODUCT_FOLDER"),
 	)
+
 	file, err := c.FormFile("product_image")
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get product image", err.Error())
@@ -161,10 +140,20 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 	if name != "" {
 		productFound.Name = name
 	}
-	if priceConv != 0 {
+	if price != "" {
+		priceConv, err := strconv.ParseFloat(price, 64)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into float64", err.Error())
+			return
+		}
 		productFound.Price = priceConv
 	}
-	if stockConv != 0 {
+	if stock != "" {
+		stockConv, err := strconv.ParseUint(stock, 10, 64)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
+			return
+		}
 		productFound.Stock = uint(stockConv)
 	}
 	if description != "" {
@@ -174,9 +163,24 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 		productFound.ProductImage = link
 	}
 	if mass != "" {
+		massConv, err := strconv.Atoi(mass)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
+		}
 		productFound.Mass = uint(massConv)
 	}
 	if category != "" {
+		categoryConv, err := strconv.ParseUint(category, 10, 64)
+		if err != nil {
+			helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
+			return
+		}
+
+		productCategory := entities.Category{}
+		if err := h.Repository.FindCategory(&productCategory, uint(categoryConv)); err != nil {
+			helper.ErrorResponse(c, http.StatusInternalServerError, "Sorry, Cant find the category. Please choose another category", err.Error())
+			return
+		}
 		productFound.CategoryID = uint(categoryConv)
 		productFound.Category = productCategory
 	}
@@ -190,7 +194,10 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 }
 
 func (h *handler) GetSellerProduct(c *gin.Context) {
-	sellerClaims, _ := c.Get("seller")
+	sellerClaims, exist := c.Get("seller")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	seller := sellerClaims.(model.SellerClaims)
 
 	products, err := h.Repository.GetSellerProduct(seller.ID)
@@ -222,7 +229,10 @@ func (h *handler) GetSellerProductByID(c *gin.Context) {
 }
 
 func (h *handler) DeleteProductByID(c *gin.Context) {
-	sellerClaims, _ := c.Get("seller")
+	sellerClaims, exist := c.Get("seller")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	seller := sellerClaims.(model.SellerClaims)
 
 	productID := model.GetProductByID{}
@@ -285,8 +295,9 @@ func (h *handler) GetProductByFilter(c *gin.Context) {
 }
 
 func (h *handler) SearchProduct(c *gin.Context) {
-	search := c.Query("search")
-	products, err := h.Repository.SearchProduct(search)
+	searchQuery := c.Query("q")
+	fmt.Println(searchQuery)
+	products, err := h.Repository.SearchProduct(searchQuery)
 
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Cant find the product in database. Please try again!", err.Error())

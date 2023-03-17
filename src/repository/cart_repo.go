@@ -16,13 +16,7 @@ func (r *Repository) GetOrCreateCart(userID uint, cart *entities.Cart) error {
 
 func (r *Repository) GetProductCart(userID uint) (*entities.Cart, error) {
 	cart := entities.Cart{}
-	err := r.db.Debug().Preload("User").Preload("CartProducts").Where("user_id = ?", userID).First(&cart).Error
-	return &cart, err
-}
-
-func (r *Repository) GetCart(userID uint) (*entities.Cart, error) {
-	cart := entities.Cart{}
-	err := r.db.Debug().Preload("User").Preload("Cart").Where("user_id = ?", userID).First(&cart).Error
+	err := r.db.Debug().Preload("User").Preload("CartProducts.Product.Seller").Preload("CartProducts.Product.Category").Where("user_id = ?", userID).First(&cart).Error
 	return &cart, err
 }
 

@@ -11,7 +11,10 @@ import (
 )
 
 func (h *handler) AddProductToCart(c *gin.Context) {
-	userClaims, _ := c.Get("user")
+	userClaims, exist := c.Get("user")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	user := userClaims.(model.UserClaims)
 
 	newItem := model.ProductQuantity{}
@@ -70,7 +73,10 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 }
 
 func (h *handler) RemoveProductFromCart(c *gin.Context) {
-	userClaims, _ := c.Get("user")
+	userClaims, exist := c.Get("user")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	user := userClaims.(model.UserClaims)
 
 	cartFound, err := h.Repository.GetProductCart(user.ID)
@@ -85,11 +91,6 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 		return
 	}
 
-	// if err := h.Repository.SaveCart(cartFound); err != nil {
-	// 	helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save into cart", nil)
-	// 	return
-	// }
-
 	if err := h.Repository.DeleteCartProduct(cartFound.ID, uint(productID)); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to remove product from cart", nil)
 		return
@@ -99,7 +100,10 @@ func (h *handler) RemoveProductFromCart(c *gin.Context) {
 }
 
 func (h *handler) GetProductCart(c *gin.Context) {
-	userClaims, _ := c.Get("user")
+	userClaims, exist := c.Get("user")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	user := userClaims.(model.UserClaims)
 	cartFound, err := h.Repository.GetProductCart(user.ID)
 	if err != nil {

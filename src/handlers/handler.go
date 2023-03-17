@@ -34,11 +34,10 @@ func (h *handler) registerRoutes() {
 	h.Repository.SeedCategory()
 	h.Repository.SeedStatus()
 
-	// userHandler := newUserHandler(h.Repository, h.config)
-	// userHandler.UserRegister
-
 	h.http.GET("/", func(ctx *gin.Context) {
 		helper.SuccessResponse(ctx, http.StatusOK, "Hello World", nil)
+		fmt.Println(h.config.GetEnv("BASE_EMAIL"))
+		fmt.Println(h.config.GetEnv("EMAIL_KEY"))
 	})
 
 	v1 := h.http.Group("/api/v1")
@@ -49,7 +48,6 @@ func (h *handler) registerRoutes() {
 	user.POST("/login", h.UserLogin)
 	user.Use(middleware.NewRepository(h.db).IsUserLoggedIn()).
 		PUT("/update", h.UserUpdate)
-		// PUT("/update/password", h.UserUpdatePassword)
 
 	//Admin
 	seller := h.http.Group(v1.BasePath() + "/seller")
@@ -57,7 +55,6 @@ func (h *handler) registerRoutes() {
 	seller.GET("/login", h.SellerLogin)
 	seller.Use(middleware.NewRepository(h.db).IsSellerLoggedIn()).
 		PUT("/update", h.SellerUpdate)
-		// PUT("/update/password", h.SellerUpdatePassword)
 
 	//Product for seller
 	product_seller := h.http.Group(v1.BasePath() + "/seller/market")
@@ -68,7 +65,8 @@ func (h *handler) registerRoutes() {
 		GET("/products", h.GetSellerProduct).
 		GET("/product/:product_id", h.GetSellerProductByID).
 		DELETE("/product/:product_id", h.DeleteProductByID).
-		POST("check", h.CheckPayment)
+		GET("/order", h.GetOrder).
+		POST("/check", h.CheckPayment)
 
 	//Product for user
 	product_user := h.http.Group(v1.BasePath() + "/user/market")
@@ -83,7 +81,8 @@ func (h *handler) registerRoutes() {
 		GET("/search", h.SearchProduct).
 		POST("/payment/offline", h.OfflinePayment).
 		POST("/payment/online", h.OnlinePayment).
-		GET("/history", h.GetHistory)
+		GET("/history", h.GetHistory).
+		GET("/history/filter/:status", h.FilterStatus)
 }
 
 func (h *handler) Run() {

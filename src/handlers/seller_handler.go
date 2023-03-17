@@ -73,11 +73,14 @@ func (h *handler) SellerLogin(c *gin.Context) {
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Login successful! Welcome back, "+sellerFound.Shop+" ! ", tokenString)
+	helper.SuccessResponse(c, http.StatusOK, tokenString, &sellerFound)
 }
 
 func (h *handler) SellerUpdate(c *gin.Context) {
-	sellerClaims, _ := c.Get("seller")
+	sellerClaims, exist := c.Get("seller")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	seller := sellerClaims.(model.SellerClaims)
 
 	shop := c.PostForm("shop")
@@ -88,9 +91,9 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
 		"https://arcudskzafkijqukfool.supabase.co",
-		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyY3Vkc2t6YWZraWpxdWtmb29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc2NDk3MjksImV4cCI6MTk5MzIyNTcyOX0.CjOVpoFAdq3U-AeAzsuyV6IGcqx2ZnaXjneTis5qd6w",
-		"bcc-project",
-		"seller-image",
+		h.config.GetEnv("SUPABASE_API_KEY"),
+		h.config.GetEnv("SUPABASE_STORAGE"),
+		h.config.GetEnv("SUPABASE_SELLER_FOLDER"),
 	)
 	file, err := c.FormFile("seller_image")
 	if err != nil {
@@ -141,15 +144,19 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 }
 
 func (h *handler) GetOrder(c *gin.Context) {
-	sellerClaims, _ := c.Get("seller")
+	sellerClaims, exist := c.Get("seller")
+	if !exist {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+	}
 	seller := sellerClaims.(model.SellerClaims)
+
 	productsOrder, err := h.Repository.GetOrder(seller.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to get order product", err.Error())
 		return
 	}
 
-	helper.SuccessResponse(c, http.StatusOK, "Product Order Found!!!", &productsOrder)
+	helper.SuccessResponse(c, http.StatusOK, "Product Order Found!", &productsOrder)
 }
 
 func (h *handler) CheckPayment(c *gin.Context) {
