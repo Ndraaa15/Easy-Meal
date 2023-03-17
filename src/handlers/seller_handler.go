@@ -173,7 +173,7 @@ func (h *handler) GetOrder(c *gin.Context) {
 	helper.SuccessResponse(c, http.StatusOK, "Product Order Found!", &productsOrder)
 }
 
-func (h *handler) CheckPayment(c *gin.Context) {
+func (h *handler) SetStatusSuccess(c *gin.Context) {
 	checkOrder := model.CheckOrder{}
 	if err := c.ShouldBindJSON(&checkOrder); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Invalid data format", err.Error())
@@ -188,6 +188,32 @@ func (h *handler) CheckPayment(c *gin.Context) {
 	payment.StatusID = 2
 	status := entities.Status{}
 	if err := h.Repository.FindStatus(&status, 2); err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get status", err.Error())
+		return
+	}
+	payment.Status = status
+
+	if err := h.Repository.SavePayment(payment); err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save udpated payment", err.Error())
+	}
+	helper.SuccessResponse(c, http.StatusOK, "Update payment Successful", &payment)
+}
+
+func (h *handler) SetStatusFailed(c *gin.Context) {
+	checkOrder := model.CheckOrder{}
+	if err := c.ShouldBindJSON(&checkOrder); err != nil {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Invalid data format", err.Error())
+		return
+	}
+
+	payment, err := h.Repository.CheckOrder(checkOrder.PaymentCode)
+	if err != nil {
+		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to get payment", err.Error())
+	}
+
+	payment.StatusID = 3
+	status := entities.Status{}
+	if err := h.Repository.FindStatus(&status, 3); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get status", err.Error())
 		return
 	}

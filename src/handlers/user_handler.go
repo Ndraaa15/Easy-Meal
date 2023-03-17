@@ -100,13 +100,11 @@ func (h *handler) UserUpdate(c *gin.Context) {
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
 		"https://arcudskzafkijqukfool.supabase.co",
-		h.config.GetEnv("SUPABASE_API_KEY"),
-		h.config.GetEnv("SUPABASE_STORAGE"),
-		h.config.GetEnv("SUPABASE_USER_FOLDER"),
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyY3Vkc2t6YWZraWpxdWtmb29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc2NDk3MjksImV4cCI6MTk5MzIyNTcyOX0.CjOVpoFAdq3U-AeAzsuyV6IGcqx2ZnaXjneTis5qd6w",
+		"bcc-project",
+		"user-image",
 	)
-	fmt.Println(h.config.GetEnv("SUPABASE_URL"))
-	fmt.Println(h.config.GetEnv("SUPABASE_API_KEY"))
-	fmt.Println(h.config.GetEnv("SUPABASE_STORAGE"))
+
 	file, err := c.FormFile("user_image")
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed to get user image", err.Error())
