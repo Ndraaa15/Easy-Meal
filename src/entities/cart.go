@@ -21,7 +21,7 @@ type CartProduct struct {
 	CartID       uint    `json:"cart_id" gorm:"foreignKey:CartID"`
 	ProductID    uint    `json:"product_id" binding:"required"`
 	SellerID     uint    `json:"seller_id" binding:"required" gorm:"foreignKey:SellerID"`
-	Quantity     uint    `json:"qty" binding:"required"`
+	Quantity     uint    `json:"quantity" binding:"required"`
 	Seller       Seller  `json:"-" gorm:"foreignKey:SellerID"`
 	Product      Product `json:"product" gorm:"foreignKey:ProductID"`
 	Cart         Cart    `json:"-" gorm:"foreignKey:CartID"`
@@ -37,7 +37,7 @@ type PaymentProduct struct {
 	PaymentID    uint    `json:"payment_id" gorm:"foreignKey:PaymentID"`
 	ProductID    uint    `json:"product_id" binding:"required"`
 	SellerID     uint    `json:"seller_id" binding:"required"`
-	Quantity     uint    `json:"qty" binding:"required"`
+	Quantity     uint    `json:"quantity" binding:"required"`
 	Seller       Seller  `json:"-" gorm:"foreignKey:SellerID"`
 	Product      Product `json:"product" gorm:"foreignKey:ProductID"`
 	Payment      Payment `json:"-" gorm:"foreignKey:PaymentID"`

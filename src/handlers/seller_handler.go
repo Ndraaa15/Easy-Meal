@@ -219,6 +219,11 @@ func (h *handler) SetStatusFailed(c *gin.Context) {
 	}
 	payment.Status = status
 
+	for _, p := range payment.PaymentProducts {
+		product, _ := h.Repository.GetProductByID(p.ProductID)
+		product.Stock += p.Quantity
+	}
+
 	if err := h.Repository.SavePayment(payment); err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to save udpated payment", err.Error())
 	}

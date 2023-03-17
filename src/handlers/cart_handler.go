@@ -43,6 +43,11 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 		return
 	}
 
+	if product.Stock == 0 {
+		helper.ErrorResponse(c, http.StatusBadRequest, "Sorry, the product is out of stock!", nil)
+		return
+	}
+
 	newCartProduct := entities.CartProduct{
 		ProductID:    uint(productID),
 		Product:      *product,

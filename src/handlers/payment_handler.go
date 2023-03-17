@@ -42,7 +42,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 
 	midclient := midtrans.NewClient()
 	midclient.ServerKey = h.config.GetEnv("SERVER_KEY")
-	midclient.ClientKey = h.config.GetEnv("CLIENT_KEY")
+	// midclient.ClientKey = h.config.GetEnv("CLIENT_KEY")
 	midclient.APIEnvType = midtrans.Sandbox
 
 	snapGateway := midtrans.SnapGateway{}
@@ -232,7 +232,7 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	}
 
 	for _, p := range cart.CartProducts {
-		auth := smtp.PlainAuth("", h.config.GetEnv("BASE_EMAIL"), h.config.GetEnv("EMAIL_KEY"), "smtp.gmail.com")
+		auth := smtp.PlainAuth("", "fuwafu212@gmail.com", "iufxycjevxxdaynm", "smtp.gmail.com")
 		product, err := h.Repository.GetProductByID(p.ProductID)
 		if err != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to found product", err.Error())
@@ -251,9 +251,10 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 		msg = append(msg, []byte("Product       	 : "+product.Name+"\n")...)
 		msg = append(msg, []byte("Quantity      	 : "+strconv.Itoa(int(p.Quantity))+"\n")...)
 		msg = append(msg, []byte("Product Price      : "+strconv.Itoa(int(p.ProductPrice)))...)
-		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("BASE_EMAIL"), to, msg)
+		errr := smtp.SendMail("smtp.gmail.com:587", auth, "fuwafu212@gmail.com", to, msg)
 		if errr != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
+			return
 		}
 
 		product.Stock = product.Stock - p.Quantity
@@ -265,7 +266,6 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 
 	if err := h.Repository.CreatePayment(&payment); err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed order", err.Error())
-		payment.StatusID = 3
 		return
 	}
 
