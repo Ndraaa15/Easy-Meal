@@ -6,6 +6,7 @@ import (
 	"bcc-project-v/src/model"
 	"net/http"
 	"net/smtp"
+	"os"
 	"strconv"
 	"time"
 
@@ -41,7 +42,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	}
 
 	midclient := midtrans.NewClient()
-	midclient.ServerKey = h.config.GetEnv("SERVER_KEY")
+	midclient.ServerKey = os.Getenv("SERVER_KEY")
 	// midclient.ClientKey = h.config.GetEnv("CLIENT_KEY")
 	midclient.APIEnvType = midtrans.Sandbox
 

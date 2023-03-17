@@ -49,6 +49,12 @@ func (r *Repository) GetAllProduct() ([]entities.Product, error) {
 	return products, err
 }
 
+func (r *Repository) ProductsForLandingPage() ([]entities.Product, error) {
+	products := []entities.Product{}
+	err := r.db.Debug().Limit(3).Preload("Seller").Preload("Category").Find(&products).Error
+	return products, err
+}
+
 func (r *Repository) SearchProduct(keyword string) ([]entities.Product, error) {
 	fmt.Println(keyword)
 	products := []entities.Product{}
