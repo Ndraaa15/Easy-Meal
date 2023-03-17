@@ -306,13 +306,3 @@ func (h *handler) SearchProduct(c *gin.Context) {
 
 	helper.SuccessResponse(c, http.StatusOK, "Products found!!!", &products)
 }
-
-func (h *handler) LandingPage(c *gin.Context) {
-	products, err := h.Repository.ProductsForLandingPage()
-	if err != nil {
-		helper.ErrorResponse(c, http.StatusInternalServerError, "Product not found. Please try again later!", err.Error())
-		return
-	}
-
-	helper.SuccessResponse(c, http.StatusOK, "Product found!!!", &products)
-}

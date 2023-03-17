@@ -43,7 +43,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 
 	midclient := midtrans.NewClient()
 	midclient.ServerKey = os.Getenv("SERVER_KEY")
-	// midclient.ClientKey = h.config.GetEnv("CLIENT_KEY")
+	midclient.ClientKey = os.Getenv("CLIENT_KEY")
 	midclient.APIEnvType = midtrans.Sandbox
 
 	snapGateway := midtrans.SnapGateway{}

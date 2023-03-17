@@ -42,9 +42,6 @@ func (h *handler) registerRoutes() {
 
 	v1 := h.http.Group("/api/v1")
 
-	//Landing Page
-	v1.GET("/landingpage", h.GetAllProduct)
-
 	//User
 	user := h.http.Group(v1.BasePath() + "/user")
 	user.POST("/signup", h.UserRegister)
