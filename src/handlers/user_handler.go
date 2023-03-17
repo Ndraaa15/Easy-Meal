@@ -6,7 +6,6 @@ import (
 	"bcc-project-v/src/model"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	supabasestorageuploader "github.com/adityarizkyramadhan/supabase-storage-uploader"
@@ -100,10 +99,10 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	gender := c.PostForm("gender")
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
-		"https://arcudskzafkijqukfool.supabase.co",
-		os.Getenv("SUPABASE_API_KEY"),
-		os.Getenv("SUPABASE_STORAGE"),
-		os.Getenv("SUPABASE_USER_FOLDER"),
+		h.config.GetEnv("SUPABASE_URL"),
+		h.config.GetEnv("SUPABASE_API_KEY"),
+		h.config.GetEnv("SUPABASE_STORAGE"),
+		h.config.GetEnv("SUPABASE_USER_FOLDER"),
 	)
 
 	file, err := c.FormFile("user_image")

@@ -6,7 +6,6 @@ import (
 	"bcc-project-v/src/model"
 	"net/http"
 	"net/smtp"
-	"os"
 	"strconv"
 	"time"
 
@@ -31,8 +30,6 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	var totalPayment float64
 	for _, p := range cart.CartProducts {
 		totalPayment = totalPayment + p.ProductPrice
-		// product, _ := h.Repository.GetProductByID(p.ProductID)
-		// totalPayment += (float64(p.Quantity) * product.Price)
 	}
 
 	userFound, err := h.Repository.FindUserByID(user.ID)
@@ -42,8 +39,8 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	}
 
 	midclient := midtrans.NewClient()
-	midclient.ServerKey = os.Getenv("SERVER_KEY")
-	midclient.ClientKey = os.Getenv("CLIENT_KEY")
+	midclient.ServerKey = h.config.GetEnv("SERVER_KEY")
+	midclient.ClientKey = h.config.GetEnv("CLIENT_KEY")
 	midclient.APIEnvType = midtrans.Sandbox
 
 	snapGateway := midtrans.SnapGateway{}
@@ -158,11 +155,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"Token": snapResp.Token,
-		"URL":   snapResp.RedirectURL,
-	})
-	helper.SuccessResponse(c, http.StatusOK, "Selamat pemesanan anda telah berhasil dilakukan!!!", &payment)
+	helper.SuccessResponse(c, http.StatusOK, snapResp.Token, snapResp.RedirectURL)
 }
 
 func (h *handler) OfflinePayment(c *gin.Context) {
@@ -233,7 +226,7 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	}
 
 	for _, p := range cart.CartProducts {
-		auth := smtp.PlainAuth("", "fuwafu212@gmail.com", "iufxycjevxxdaynm", "smtp.gmail.com")
+		auth := smtp.PlainAuth("", h.config.GetEnv("BASE_EMAIL"), h.config.GetEnv("EMAIL_KEY"), "smtp.gmail.com")
 		product, err := h.Repository.GetProductByID(p.ProductID)
 		if err != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to found product", err.Error())
@@ -252,7 +245,7 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 		msg = append(msg, []byte("Product       	 : "+product.Name+"\n")...)
 		msg = append(msg, []byte("Quantity      	 : "+strconv.Itoa(int(p.Quantity))+"\n")...)
 		msg = append(msg, []byte("Product Price      : "+strconv.Itoa(int(p.ProductPrice)))...)
-		errr := smtp.SendMail("smtp.gmail.com:587", auth, "fuwafu212@gmail.com", to, msg)
+		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("BASE_EMAIL"), to, msg)
 		if errr != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
 			return
