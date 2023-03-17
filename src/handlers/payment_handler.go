@@ -18,6 +18,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 	userClaims, exist := c.Get("user")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	user := userClaims.(model.UserClaims)
 
@@ -118,10 +119,12 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		product, err := h.Repository.GetProductByID(p.ProductID)
 		if err != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to found product", err.Error())
+			return
 		}
 		seller, err := h.Repository.FindSellerByID(product.SellerID)
 		if err != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to found seller", err.Error())
+			return
 		}
 
 		to := []string{seller.Email}
@@ -136,6 +139,7 @@ func (h *handler) OnlinePayment(c *gin.Context) {
 		errr := smtp.SendMail("smtp.gmail.com:587", auth, h.config.GetEnv("BASE_EMAIL"), to, msg)
 		if errr != nil {
 			helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email", errr.Error())
+			return
 		}
 
 		product.Stock = product.Stock - p.Quantity
@@ -162,12 +166,14 @@ func (h *handler) OfflinePayment(c *gin.Context) {
 	userClaims, exist := c.Get("user")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	user := userClaims.(model.UserClaims)
 
 	cart, err := h.Repository.GetProductCart(user.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Failed get cart", err.Error())
+		return
 	}
 
 	userFound, err := h.Repository.FindUserByID(user.ID)

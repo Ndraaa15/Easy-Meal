@@ -87,6 +87,7 @@ func (h *handler) UserUpdate(c *gin.Context) {
 	userClaims, exist := c.Get("user")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	user := userClaims.(model.UserClaims)
 

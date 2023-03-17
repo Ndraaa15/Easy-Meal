@@ -14,6 +14,7 @@ func (h *handler) AddProductToCart(c *gin.Context) {
 	userClaims, exist := c.Get("user")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	user := userClaims.(model.UserClaims)
 
@@ -108,6 +109,7 @@ func (h *handler) GetProductCart(c *gin.Context) {
 	userClaims, exist := c.Get("user")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	user := userClaims.(model.UserClaims)
 	cartFound, err := h.Repository.GetProductCart(user.ID)

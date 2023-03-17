@@ -19,12 +19,14 @@ func (h *handler) PostProduct(c *gin.Context) {
 	sellerClaims, exist := c.Get("seller")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	seller := sellerClaims.(model.SellerClaims)
 
 	sellerFound, err := h.Repository.FindSellerByID(seller.ID)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Seller not found", err.Error())
+		return
 	}
 
 	name := c.PostForm("name")
@@ -54,21 +56,25 @@ func (h *handler) PostProduct(c *gin.Context) {
 	massConv, err := strconv.Atoi(mass)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
+		return
 	}
 
 	priceConv, err := strconv.ParseFloat(price, 64)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into float64", err.Error())
+		return
 	}
 
 	stockConv, err := strconv.ParseUint(stock, 10, 64)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
+		return
 	}
 
 	categoryConv, err := strconv.ParseUint(category, 10, 64)
 	if err != nil {
 		helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
+		return
 	}
 
 	productCategory := entities.Category{}
@@ -166,6 +172,7 @@ func (h *handler) UpdateProduct(c *gin.Context) {
 		massConv, err := strconv.Atoi(mass)
 		if err != nil {
 			helper.ErrorResponse(c, http.StatusBadRequest, "Error while parsing string into uint", err.Error())
+			return
 		}
 		productFound.Mass = uint(massConv)
 	}
@@ -197,6 +204,7 @@ func (h *handler) GetSellerProduct(c *gin.Context) {
 	sellerClaims, exist := c.Get("seller")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	seller := sellerClaims.(model.SellerClaims)
 
@@ -232,6 +240,7 @@ func (h *handler) DeleteProductByID(c *gin.Context) {
 	sellerClaims, exist := c.Get("seller")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	seller := sellerClaims.(model.SellerClaims)
 

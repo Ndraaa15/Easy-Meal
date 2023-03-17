@@ -82,6 +82,7 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 	sellerClaims, exist := c.Get("seller")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	seller := sellerClaims.(model.SellerClaims)
 
@@ -161,6 +162,7 @@ func (h *handler) GetOrder(c *gin.Context) {
 	sellerClaims, exist := c.Get("seller")
 	if !exist {
 		helper.ErrorResponse(c, http.StatusInternalServerError, "Failed to load JWT token, please try again!", nil)
+		return
 	}
 	seller := sellerClaims.(model.SellerClaims)
 
