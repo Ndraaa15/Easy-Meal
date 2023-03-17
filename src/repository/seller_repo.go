@@ -14,7 +14,7 @@ func (r *Repository) CreateSeller(seller *entities.Seller) error {
 
 func (r *Repository) FindSellerByEmail(model *model.SellerLogin) (*entities.Seller, error) {
 	sellerFound := entities.Seller{}
-	err := r.db.Debug().Where("email = ?", model.Email).First(&sellerFound).Error
+	err := r.db.Debug().Where("email = ?", model.Email).Or("username = ?", model.Username).First(&sellerFound).Error
 	return &sellerFound, err
 }
 

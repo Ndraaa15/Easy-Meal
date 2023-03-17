@@ -66,7 +66,7 @@ func (h *handler) registerRoutes() {
 		GET("/product/:product_id", h.GetSellerProductByID).
 		DELETE("/product/:product_id", h.DeleteProductByID).
 		GET("/order", h.GetOrder).
-		POST("/check", h.CheckPayment)
+		POST("/check/payment", h.CheckPayment)
 
 	//Product for user
 	product_user := h.http.Group(v1.BasePath() + "/user/market")

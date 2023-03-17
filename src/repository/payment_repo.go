@@ -14,13 +14,13 @@ func (r *Repository) SavePayment(payment *entities.Payment) error {
 
 func (r *Repository) FilteredStatus(statusID uint) ([]entities.Payment, error) {
 	payments := []entities.Payment{}
-	err := r.db.Debug().Model(&entities.Payment{}).Preload("PaymentProducts.Product.Seller").Preload("PaymentProducts.Product.Category").Where("status_id = ?", statusID).Find(&payments).Error
+	err := r.db.Debug().Model(&entities.Payment{}).Preload("Status").Preload("PaymentProducts.Product.Seller").Preload("PaymentProducts.Product.Category").Where("status_id = ?", statusID).Find(&payments).Error
 	return payments, err
 }
 
 func (r *Repository) GetOrder(sellerID uint) ([]entities.PaymentProduct, error) {
 	productsOrder := []entities.PaymentProduct{}
-	err := r.db.Debug().Preload("Product").Where("seller_id = ?", sellerID).Find(&productsOrder).Error
+	err := r.db.Debug().Preload("Product.Category").Preload("Product.Seller").Where("seller_id = ?", sellerID).Find(&productsOrder).Error
 	return productsOrder, err
 }
 

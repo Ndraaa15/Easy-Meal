@@ -8,12 +8,15 @@ import (
 
 type SellerRegister struct {
 	Shop     string `json:"shop" binding:"required"`
+	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Address  string `json:"address" binding:"required"`
+	City     string `json:"city" binding:"required"`
 	Contact  string `json:"contact" binding:"required"`
 }
 type SellerLogin struct {
+	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }

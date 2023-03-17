@@ -28,9 +28,11 @@ func (h *handler) SellerRegister(c *gin.Context) {
 
 	seller := entities.Seller{
 		Shop:     newSeller.Shop,
+		Username: newSeller.Username,
 		Email:    newSeller.Email,
 		Password: string(hashPassword),
 		Address:  newSeller.Address,
+		City:     newSeller.City,
 		Contact:  newSeller.Contact,
 	}
 	if err := h.Repository.CreateSeller(&seller); err != nil {
@@ -84,10 +86,13 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 	seller := sellerClaims.(model.SellerClaims)
 
 	shop := c.PostForm("shop")
+	username := c.PostForm("username")
 	email := c.PostForm("email")
 	password := c.PostForm("password")
 	address := c.PostForm("address")
+	city := c.PostForm("city")
 	contact := c.PostForm("contact")
+	linkMaps := c.PostForm("link_maps")
 
 	supClient := supabasestorageuploader.NewSupabaseClient(
 		"https://arcudskzafkijqukfool.supabase.co",
@@ -115,14 +120,23 @@ func (h *handler) SellerUpdate(c *gin.Context) {
 	if shop != "" {
 		sellerFound.Shop = shop
 	}
+	if username != "" {
+		sellerFound.Username = username
+	}
 	if email != "" {
 		sellerFound.Email = email
 	}
 	if address != "" {
 		sellerFound.Address = address
 	}
+	if city != "" {
+		sellerFound.City = city
+	}
 	if contact != "" {
 		sellerFound.Contact = contact
+	}
+	if linkMaps != "" {
+		sellerFound.LinkMaps = linkMaps
 	}
 	if sellerFound.SellerImage != link {
 		sellerFound.SellerImage = link
