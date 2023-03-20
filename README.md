@@ -10,3 +10,7 @@ https://documenter.getpostman.com/view/25537573/2s93JzN1hm
 
 As a seller :
 https://documenter.getpostman.com/view/25537573/2s93JzN1nA
+
+
+![image](https://user-images.githubusercontent.com/112854205/226233879-452b3acd-24ce-48be-aa7c-8aa5cd7bfbd4.png)
+
