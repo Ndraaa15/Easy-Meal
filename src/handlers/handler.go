@@ -36,8 +36,6 @@ func (h *handler) registerRoutes() {
 
 	h.http.GET("/", func(ctx *gin.Context) {
 		helper.SuccessResponse(ctx, http.StatusOK, "Hello World", nil)
-		fmt.Println(h.config.GetEnv("BASE_EMAIL"))
-		fmt.Println(h.config.GetEnv("EMAIL_KEY"))
 	})
 
 	v1 := h.http.Group("/api/v1")
