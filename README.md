@@ -1,5 +1,5 @@
 # Easy Meal
-BCC PROJECT
+BCC Project - Internship (2023)
 
 A Project that made by Indra, Puput, Razzaaq, Regin to join BCC Community in 2023
 
